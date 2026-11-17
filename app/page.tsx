@@ -21,14 +21,15 @@ export default async function Home() {
         <Logo />
         <nav className="flex items-center gap-4 text-sm">
           {!userId && <Link href="/sign-in" className="text-[var(--mute)] hover:text-[var(--ink)]">Sign in</Link>}
-          <Link href={cta.href} className="rounded-lg bg-[var(--accent)] px-3.5 py-2 font-semibold text-white">{cta.label}</Link>
+          <Link href={cta.href} className="rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-hover)] px-3.5 py-2 font-semibold text-white">{cta.label}</Link>
         </nav>
       </header>
       <main>
         <section className="mx-auto max-w-5xl px-4 pb-16 pt-14 text-center">
+          <span className="mb-5 inline-block rounded-full bg-[var(--accent-tint)] px-3 py-1 text-sm font-medium text-[var(--accent)]">Excel in, report site out</span>
           <h1 className="mx-auto max-w-3xl text-4xl font-bold tracking-tight sm:text-5xl">Turn an Excel file into a report your team can open from a link.</h1>
           <p className="mx-auto mt-5 max-w-2xl text-lg text-[var(--mute)]">Upload an .xlsx. Get a clean, searchable progress report with status chips, KPI tiles and optional password protection. Update it by uploading again.</p>
-          <div className="mt-8"><Link href={cta.href} className="inline-block rounded-lg bg-[var(--accent)] px-6 py-3 font-semibold text-white">{cta.label}</Link></div>
+          <div className="mt-8"><Link href={cta.href} className="inline-block rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-hover)] px-6 py-3 font-semibold text-white">{cta.label}</Link></div>
           <p className="mt-3 text-sm text-[var(--mute)]">Free: {FREE.maxReports} reports. No credit card.</p>
         </section>
         <section className="mx-auto grid max-w-5xl gap-4 px-4 pb-16 sm:grid-cols-2 lg:grid-cols-3">

@@ -1,3 +1,11 @@
 @import "tailwindcss";
-:root { --bg:#f7f8fa; --ink:#14161b; --mute:#5f6877; --line:#e3e6ec; --card:#fff; --accent:#2f5bea; }
-body { background:var(--bg); color:var(--ink); font-family: system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+/* Sheetpress brand tokens, sampled from the logo. Keep in sync with lib/report-template.html.
+   slate #2a4451 / #3a5b68 · logo greens #329373 / #31b791 · grays #d6dbe3 / #f0f2f5.
+   --accent is the logo green darkened to 4.87:1 with white text (the raw #329373 is only 3.78:1). */
+:root {
+  --bg: #f0f2f5; --card: #ffffff; --line: #d6dbe3;
+  --ink: #2a4451; --slate: #3a5b68; --mute: #566b75;
+  --accent: #2a7f63; --accent-hover: #226a53; --accent-tint: #e3f4ee; --brand-green: #31b791;
+}
+body { background: var(--bg); color: var(--ink); font-family: system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }

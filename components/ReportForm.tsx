@@ -43,7 +43,7 @@ export default function ReportForm({ id, initialTitle = "", initialSubtitle = ""
         </label>
       </div>
       {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
-      <button disabled={busy} className="rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-white disabled:opacity-60">
+      <button disabled={busy} className="rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-hover)] px-4 py-2 text-sm font-semibold text-white disabled:opacity-60">
         {busy ? "Publishing..." : id ? "Replace workbook" : "Publish report"}
       </button>
     </form>
