@@ -1,8 +1,8 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
-// Owner area + report management API require login. Published reports (/r/*) stay public
-// (password-protected ones are encrypted at rest).
+// Clerk runs ONLY where it is needed. The marketing page (/) and published reports (/r/*) are not
+// matched below, so they never trigger Clerk's session handshake or load Clerk scripts.
 const isPage = createRouteMatcher(["/app(.*)"]);
 const isApi = createRouteMatcher(["/api/reports(.*)"]);
 
@@ -20,8 +20,5 @@ export default clerkMiddleware(
 );
 
 export const config = {
-  matcher: [
-    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|webmanifest)).*)",
-    "/(api|trpc)(.*)",
-  ],
+  matcher: ["/app/:path*", "/sign-in/:path*", "/sign-up/:path*", "/api/reports/:path*"],
 };

@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { auth } from "@clerk/nextjs/server";
 import Logo from "@/components/Logo";
 import { FREE } from "@/lib/plans";
 
@@ -12,15 +11,16 @@ const features = [
   ["No code", "No dashboards to design. Your spreadsheet is the source of truth."],
 ];
 
-export default async function Home() {
-  const { userId } = await auth();
-  const cta = userId ? { href: "/app", label: "Open dashboard" } : { href: "/sign-up", label: "Start free" };
+// Public page: deliberately independent of Clerk (no provider, no middleware), so it loads
+// for everyone, including returning visitors with session cookies and during Clerk outages.
+export default function Home() {
+  const cta = { href: "/sign-up", label: "Start free" };
   return (
     <>
       <header className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
         <Logo />
         <nav className="flex items-center gap-4 text-sm">
-          {!userId && <Link href="/sign-in" className="text-[var(--mute)] hover:text-[var(--ink)]">Sign in</Link>}
+          <Link href="/sign-in" className="text-[var(--mute)] hover:text-[var(--ink)]">Sign in</Link>
           <Link href={cta.href} className="rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-hover)] px-3.5 py-2 font-semibold text-white">{cta.label}</Link>
         </nav>
       </header>
