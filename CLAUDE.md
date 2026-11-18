@@ -1,4 +1,4 @@
-# Sheetpress
+# SheetPress
 
 Excel (.xlsx) to shareable report site. Next.js 16 (proxy.ts, async params) + Clerk v7 + Neon/Drizzle. See README.md.
 - Read `node_modules/next/dist/docs/` before using Next APIs from memory; this version has breaking changes.

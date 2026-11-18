@@ -1,4 +1,4 @@
-# Sheetpress
+# SheetPress
 
 Upload an Excel (.xlsx), get a shareable, searchable report page. Live target: https://sheetpress.yeve.dev
 

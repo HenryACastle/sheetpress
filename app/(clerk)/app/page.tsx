@@ -8,7 +8,7 @@ import { FREE } from "@/lib/plans";
 import { listReports } from "@/lib/reports";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Dashboard | Sheetpress" };
+export const metadata = { title: "Dashboard | SheetPress" };
 
 export default async function Dashboard() {
   const { userId } = await auth();
