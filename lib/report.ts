@@ -1,5 +1,6 @@
 import { webcrypto as crypto } from "node:crypto";
 import { REPORT_TEMPLATE } from "./report-template.generated";
+import { SITE_URL } from "./site";
 
 export type Sheet = { name: string; kind: "summary" | "table"; headers: string[]; rows: (string | number)[][] };
 export type ReportData = { title: string; subtitle: string; generated: string; sheets: Sheet[] };
@@ -27,7 +28,7 @@ const safeJson = (o: unknown) =>
 
 export function renderHtml(title: string, payload: Payload): string {
   const js = "enc" in payload ? `window.__ENC__=${safeJson(payload.enc)};` : `window.__DATA__=${safeJson(payload.data)};`;
-  return REPORT_TEMPLATE.replace("/*__PAYLOAD__*/", () => js).replace("__TITLE__", () => title.replace(/[<>&"]/g, ""));
+  return REPORT_TEMPLATE.replace("/*__PAYLOAD__*/", () => js).replace("__TITLE__", () => title.replace(/[<>&"]/g, "")).replace("__SITE_URL__", () => SITE_URL);
 }
 
 export function makeSlug(title: string): string {

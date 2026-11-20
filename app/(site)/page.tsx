@@ -2,6 +2,7 @@ import Link from "next/link";
 import Logo from "@/components/Logo";
 import ReportPreview from "@/components/landing/ReportPreview";
 import { FREE } from "@/lib/plans";
+import { SITE_HOST } from "@/lib/site";
 
 // Public page: deliberately independent of Clerk (no provider, no middleware), so it loads
 // for everyone, including returning visitors with session cookies and during Clerk outages.
@@ -41,12 +42,17 @@ const faqs: [string, string][] = [
   ["How do I update a report?", "Open your dashboard, choose Update and upload the new workbook. The link stays the same."],
   ["Does it work with Google Sheets?", "Not yet. Download your sheet as .xlsx and upload it. Live Google Sheets sync is planned."],
   ["What gets imported from my workbook?", "Cell values only: text, numbers and dates. Formulas show their last calculated value. Formatting, charts and images are not carried over."],
-  ["Can I use my own domain?", "Not yet. Reports live at sheetpress.yeve.dev/r/your-report. Custom domains are planned."],
+  ["Can I use my own domain?", `Not yet. Reports live at ${SITE_HOST}/r/your-report. Custom domains are planned.`],
   ["Can I turn a spreadsheet into an app?", "That is where SheetPress is heading: forms, in-browser editing and approvals on top of your workbook. Today it publishes websites, reports and dashboards."],
 ];
 
 const soon = <span className="ml-2 rounded bg-[var(--line)] px-1.5 py-0.5 align-middle text-[11px] font-medium text-[var(--mute)]">Coming soon</span>;
-const nav = [["Use cases", "#use-cases"], ["How it works", "#how"], ["Pricing", "#pricing"], ["FAQ", "#faq"]];
+const nav = [["Examples", "#examples"], ["Use cases", "#use-cases"], ["How it works", "#how"], ["Pricing", "#pricing"], ["FAQ", "#faq"]];
+
+const examples = [
+  { title: "Status report", blurb: "A 23-site rollout: headline tiles, colored status chips, a breakdown bar and progress bars, all from one workbook.", view: "/r/demo-q4-site-rollout", file: "/examples/q4-site-rollout.xlsx", tag: "Report and dashboard" },
+  { title: "Team directory", blurb: "A searchable, sortable staff list with links, published as its own page in seconds.", view: "/r/demo-team-directory", file: "/examples/team-directory.xlsx", tag: "Website and directory" },
+];
 
 export default function Home() {
   const cta = "/sign-up";
@@ -69,7 +75,7 @@ export default function Home() {
           <p className="mx-auto mt-5 max-w-2xl text-lg text-[var(--mute)]">Upload an .xlsx and get a clean, searchable page with its own link in under a minute. No code, no design work, no Google Sheets setup. Websites and reports today, interactive apps next.</p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <Link href={cta} className="rounded-lg bg-[var(--accent)] px-6 py-3 font-semibold text-white hover:bg-[var(--accent-hover)]">Start free</Link>
-            <a href="#use-cases" className="rounded-lg border border-[var(--line)] bg-[var(--card)] px-6 py-3 font-semibold hover:bg-[var(--bg)]">See use cases</a>
+            <a href="/r/demo-q4-site-rollout" target="_blank" rel="noopener" className="rounded-lg border border-[var(--line)] bg-[var(--card)] px-6 py-3 font-semibold hover:bg-[var(--bg)]">See a live example</a>
           </div>
           <p className="mt-3 text-sm text-[var(--mute)]">Free: {FREE.maxReports} reports, password protection included. No credit card.</p>
           <div className="mt-12"><ReportPreview /></div>
@@ -87,6 +93,25 @@ export default function Home() {
               </li>
             ))}
           </ol>
+        </section>
+
+        {/* Live examples */}
+        <section id="examples" className="mx-auto max-w-5xl scroll-mt-6 px-4 py-14">
+          <h2 className="text-center text-3xl font-bold tracking-tight">See it in action</h2>
+          <p className="mx-auto mt-3 max-w-2xl text-center text-[var(--mute)]">Both pages below were built from the Excel files you can download next to them. Fictional data, real output.</p>
+          <div className="mt-8 grid gap-4 md:grid-cols-2">
+            {examples.map((e) => (
+              <article key={e.title} className="rounded-xl border border-[var(--line)] bg-[var(--card)] p-6">
+                <p className="text-xs font-medium text-[var(--accent)]">{e.tag}</p>
+                <h3 className="mt-1 text-lg font-semibold">{e.title}</h3>
+                <p className="mt-2 text-sm text-[var(--mute)]">{e.blurb}</p>
+                <div className="mt-5 flex flex-wrap gap-3">
+                  <a href={e.view} target="_blank" rel="noopener" className="rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--accent-hover)]">View live page</a>
+                  <a href={e.file} download className="rounded-lg border border-[var(--line)] px-4 py-2 text-sm font-semibold hover:bg-[var(--bg)]">Download the .xlsx</a>
+                </div>
+              </article>
+            ))}
+          </div>
         </section>
 
         {/* Use cases */}
@@ -126,7 +151,7 @@ export default function Home() {
               <p className="mt-1 text-3xl font-bold">$0</p>
               <ul className="mt-4 space-y-2 text-sm text-[var(--mute)]">
                 <li>{FREE.maxReports} reports</li><li>Up to {FREE.maxRowsPerSheet.toLocaleString()} rows per sheet</li>
-                <li>Password protection</li><li>Update in place</li><li>sheetpress.yeve.dev/r/your-report</li><li>&ldquo;Built with SheetPress&rdquo; footer</li>
+                <li>Password protection</li><li>Update in place</li><li>{SITE_HOST}/r/your-report</li><li>&ldquo;Built with SheetPress&rdquo; footer</li>
               </ul>
               <Link href={cta} className="mt-6 block rounded-lg bg-[var(--accent)] px-4 py-2.5 text-center font-semibold text-white hover:bg-[var(--accent-hover)]">Start free</Link>
             </div>
@@ -171,6 +196,8 @@ export default function Home() {
           <nav className="flex flex-wrap gap-5" aria-label="Footer">
             {nav.map(([l, h]) => <a key={h} href={h} className="hover:text-[var(--ink)]">{l}</a>)}
             <Link href="/sign-in" className="hover:text-[var(--ink)]">Sign in</Link>
+            <Link href="/privacy" className="hover:text-[var(--ink)]">Privacy</Link>
+            <Link href="/terms" className="hover:text-[var(--ink)]">Terms</Link>
           </nav>
           <p>&copy; {new Date().getFullYear()} SheetPress</p>
         </div>

@@ -1,10 +1,11 @@
 import type { Metadata, Viewport } from "next";
+import { SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 const title = "SheetPress: turn any Excel sheet into a website, a report or an app";
 const description = "Upload an .xlsx and publish it as a searchable website, a status report or a private client page. No code, no design work.";
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "https://sheetpress.yeve.dev"),
+  metadataBase: new URL(SITE_URL),
   title, description, applicationName: "SheetPress",
   openGraph: { title, description, siteName: "SheetPress", type: "website" },
   twitter: { card: "summary", title, description },

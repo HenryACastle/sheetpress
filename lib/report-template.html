@@ -217,7 +217,7 @@ function render(D){
   D.sheets.forEach(function(s,i){var b=el('button',null,s.name);b.setAttribute('role','tab');b.onclick=function(){show(i)};nav.appendChild(b)});
   var start=D.sheets.findIndex(function(s){return s.name===decodeURIComponent(location.hash.slice(1))});
   show(start>=0?start:(firstSummary>=0?firstSummary:0));
-  var ft=el('footer',null,'Built with ');var fa=el('a',null,'SheetPress');fa.href='https://sheetpress.yeve.dev';fa.target='_blank';fa.rel='noopener';ft.appendChild(fa);app.appendChild(ft);
+  var ft=el('footer',null,'Built with ');var fa=el('a',null,'SheetPress');fa.href='__SITE_URL__';fa.target='_blank';fa.rel='noopener';ft.appendChild(fa);app.appendChild(ft);
 }
 
 if(window.__ENC__)unlockUI();else render(window.__DATA__);
