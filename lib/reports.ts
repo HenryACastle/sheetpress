@@ -8,6 +8,7 @@ export const listReports = (userId: string) =>
     id: reports.id, slug: reports.slug, title: reports.title, subtitle: reports.subtitle,
     protectedByPassword: reports.protectedByPassword, sheetCount: reports.sheetCount,
     rowCount: reports.rowCount, updatedAt: reports.updatedAt,
+    customDomain: reports.customDomain, domainVerified: reports.domainVerified,
     editable: sql<boolean>`coalesce(${reports.payload}->'data'->>'editable', 'false') = 'true'`,
   }).from(reports).where(eq(reports.userId, userId)).orderBy(desc(reports.updatedAt));
 

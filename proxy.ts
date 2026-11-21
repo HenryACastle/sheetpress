@@ -1,5 +1,7 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse, type NextFetchEvent, type NextRequest } from "next/server";
+import { isOwnHost } from "@/lib/domains";
+import { slugForHost } from "@/lib/domain-service";
 
 // Clerk runs ONLY where it is needed. The marketing page (/) and published reports (/r/*) never
 // trigger Clerk's session handshake or load Clerk scripts.
@@ -32,18 +34,44 @@ function reportHosts(): Record<string, string> {
   return out;
 }
 
-export default function proxy(req: NextRequest, evt: NextFetchEvent) {
+// Customer domains added from the dashboard (reports.custom_domain). Served only while verified.
+// Tiny per-instance cache so a busy report does not hit the database on every request.
+const hostCache = new Map<string, { slug: string | null; exp: number }>();
+async function customDomainSlug(host: string): Promise<string | null> {
+  const hit = hostCache.get(host);
+  if (hit && hit.exp > Date.now()) return hit.slug;
+  const slug = await slugForHost(host);
+  hostCache.set(host, { slug, exp: Date.now() + (slug ? 20_000 : 10_000) });
+  if (hostCache.size > 500) hostCache.clear();
+  return slug;
+}
+
+// A host that is not ours serves one report at its root and nothing else of the app.
+function serveReportHost(req: NextRequest, slug: string | null) {
+  const { pathname } = req.nextUrl;
+  if (!slug) return new NextResponse("This domain is not connected to a report.", { status: 404, headers: { "x-robots-tag": "noindex" } });
+  if (pathname === "/") {
+    const url = req.nextUrl.clone();
+    url.pathname = `/r/${slug}`;
+    return NextResponse.rewrite(url);
+  }
+  if (pathname === `/r/${slug}` || pathname === "/robots.txt" || pathname === "/favicon.ico") return NextResponse.next();
+  return new NextResponse("Not found", { status: 404 });
+}
+
+export default async function proxy(req: NextRequest, evt: NextFetchEvent) {
   const host = (req.headers.get("x-forwarded-host") ?? req.headers.get("host") ?? "").toLowerCase().split(":")[0];
-  const slug = reportHosts()[host];
-  if (slug) {
-    const { pathname } = req.nextUrl;
-    if (pathname === "/") {
-      const url = req.nextUrl.clone();
-      url.pathname = `/r/${slug}`;
-      return NextResponse.rewrite(url);
+  // 1) Operator override from the REPORT_DOMAINS env var (checked first, no database).
+  const fixed = reportHosts()[host];
+  if (fixed) return serveReportHost(req, fixed);
+  // 2) Any host that is not one of ours is a customer domain: look it up.
+  if (!isOwnHost(host)) {
+    try {
+      return serveReportHost(req, await customDomainSlug(host));
+    } catch (e) {
+      console.error("custom domain lookup failed", e);
+      return new NextResponse("Temporarily unavailable. Please try again.", { status: 503, headers: { "retry-after": "10" } });
     }
-    if (pathname === `/r/${slug}` || pathname === "/robots.txt" || pathname === "/favicon.ico") return NextResponse.next();
-    return new NextResponse("Not found", { status: 404 });
   }
   if (needsClerk(req)) return clerk(req, evt);
   return NextResponse.next();

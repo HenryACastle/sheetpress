@@ -3,7 +3,7 @@ import Logo from "@/components/Logo";
 import SiteHeader, { NAV_LINKS } from "@/components/landing/SiteHeader";
 import ReportPreview from "@/components/landing/ReportPreview";
 import { FREE } from "@/lib/plans";
-import { SITE_HOST } from "@/lib/site";
+import { CUSTOM_DOMAINS_LIVE, SITE_HOST } from "@/lib/site";
 
 // Public page: deliberately independent of Clerk (no provider, no middleware), so it loads
 // for everyone, including returning visitors with session cookies and during Clerk outages.
@@ -31,7 +31,7 @@ const features: [string, string, boolean?][] = [
   ["Reports out of the box", "Status chips, KPI tiles and progress bars appear from your columns. There is no layout to design."],
   ["Search, sort and filter", "Every table is searchable and sortable, and status breakdowns filter the table in one click. Works on a phone."],
   ["Update in place", "Replace the workbook and keep the link, so nothing you already sent goes stale."],
-  ["Your own domain", "Serve reports from reports.yourcompany.com.", true],
+  ["Your own domain", CUSTOM_DOMAINS_LIVE ? "Serve any report at reports.yourcompany.com. We show you the one DNS record to add and check it for you." : "Serve reports from reports.yourcompany.com.", !CUSTOM_DOMAINS_LIVE],
   ["Live Google Sheets sync", "Connect a sheet and the page refreshes itself.", true],
   ["Team logins", "Choose exactly who can open a report, with no shared password.", true],
 ];
@@ -43,7 +43,7 @@ const faqs: [string, string][] = [
   ["How do I update a report?", "Open your dashboard, choose Update and upload the new workbook. The link stays the same."],
   ["Does it work with Google Sheets?", "Not yet. Download your sheet as .xlsx and upload it. Live Google Sheets sync is planned."],
   ["What gets imported from my workbook?", "Cell values only: text, numbers and dates. Formulas show their last calculated value. Formatting, charts and images are not carried over."],
-  ["Can I use my own domain?", `Not yet. Reports live at ${SITE_HOST}/r/your-report. Custom domains are planned.`],
+  ["Can I use my own domain?", CUSTOM_DOMAINS_LIVE ? `Yes. Open a report in your dashboard, choose Link & domain, and enter an address like reports.yourcompany.com. We show you the DNS record to add at your domain provider and switch the page on as soon as it works. You can also choose a short link name at ${SITE_HOST}/r/your-name with no DNS at all.` : `Not yet. Reports live at ${SITE_HOST}/r/your-report, and you can choose the name after /r/. Custom domains are coming.`],
   ["Can I turn a spreadsheet into an app?", "That is where SheetPress is heading: forms, in-browser editing and approvals on top of your workbook. Today it publishes websites, reports and dashboards."],
 ];
 
@@ -144,7 +144,7 @@ export default function Home() {
               <p className="mt-1 text-3xl font-bold">$0</p>
               <ul className="mt-4 space-y-2 text-sm text-[var(--mute)]">
                 <li>{FREE.maxReports} reports</li><li>Up to {FREE.maxRowsPerSheet.toLocaleString()} rows per sheet</li>
-                <li>Password protection</li><li>Update in place</li><li>{SITE_HOST}/r/your-report</li><li>&ldquo;Built with SheetPress&rdquo; footer</li>
+                <li>Password protection</li><li>Update in place</li><li>{SITE_HOST}/r/your-name</li>{CUSTOM_DOMAINS_LIVE && <li>1 custom domain</li>}<li>&ldquo;Built with SheetPress&rdquo; footer</li>
               </ul>
               <Link href={cta} className="mt-6 block rounded-lg bg-[var(--accent)] px-4 py-2.5 text-center font-semibold text-white hover:bg-[var(--accent-hover)]">Start free</Link>
             </div>

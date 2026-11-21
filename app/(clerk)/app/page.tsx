@@ -9,6 +9,7 @@ import WelcomeGuide from "@/components/WelcomeGuide";
 import WorkbookTips from "@/components/WorkbookTips";
 import { FREE } from "@/lib/plans";
 import { listReports } from "@/lib/reports";
+import { vercelConfigured } from "@/lib/vercel-domains";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Dashboard | SheetPress" };
@@ -50,7 +51,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
             <p className="rounded-xl border border-dashed border-[var(--line)] p-6 text-center text-sm text-[var(--mute)]">Your published reports will appear here, each with its own link.</p>
           ) : (
             <ul className="space-y-3">
-              {list.map((r) => <ReportCard key={r.id} r={{ ...r, updatedAt: r.updatedAt.toISOString() }} />)}
+              {list.map((r) => <ReportCard key={r.id} r={{ ...r, updatedAt: r.updatedAt.toISOString() }} domainsEnabled={vercelConfigured()} />)}
             </ul>
           )}
         </section>

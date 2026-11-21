@@ -2,18 +2,21 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import LinkSettings from "./LinkSettings";
 import ReportForm from "./ReportForm";
 
-export type CardReport = { id: string; slug: string; title: string; subtitle: string; protectedByPassword: boolean; sheetCount: number; rowCount: number; updatedAt: string; editable?: boolean };
+export type CardReport = { id: string; slug: string; title: string; subtitle: string; protectedByPassword: boolean; sheetCount: number; rowCount: number; updatedAt: string; editable?: boolean; customDomain?: string | null; domainVerified?: boolean };
 
-export default function ReportCard({ r }: { r: CardReport }) {
+export default function ReportCard({ r, domainsEnabled = false }: { r: CardReport; domainsEnabled?: boolean }) {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
+  const [linkOpen, setLinkOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const liveDomain = r.customDomain && r.domainVerified ? r.customDomain : null;
   const path = `/r/${r.slug}`;
 
   async function copy() {
-    try { await navigator.clipboard.writeText(window.location.origin + path); setCopied(true); setTimeout(() => setCopied(false), 1500); } catch {}
+    try { await navigator.clipboard.writeText(liveDomain ? `https://${liveDomain}` : window.location.origin + path); setCopied(true); setTimeout(() => setCopied(false), 1500); } catch {}
   }
   async function remove() {
     if (!confirm(`Delete "${r.title}"? The link will stop working.`)) return;
@@ -29,15 +32,23 @@ export default function ReportCard({ r }: { r: CardReport }) {
           <p className="text-sm text-[var(--mute)]">
             {r.editable ? "Editable list · " : ""}{r.protectedByPassword ? "Password protected" : "Public link"} · {r.sheetCount} sheets · {r.rowCount} rows · updated {new Date(r.updatedAt).toLocaleDateString()}
           </p>
+          {liveDomain && <p className="text-sm"><a href={`https://${liveDomain}`} target="_blank" rel="noopener noreferrer" className="text-[var(--accent)] underline">{liveDomain}</a></p>}
+          {r.customDomain && !r.domainVerified && <p className="text-xs text-[var(--warn)]">{r.customDomain} is waiting for DNS</p>}
         </div>
         <div className="flex flex-wrap gap-2">
           {r.editable && <Link href={`/app/lists/${r.id}`} className={`${btn} font-semibold`}>Edit list</Link>}
           <a href={path} target="_blank" rel="noopener noreferrer" className={btn}>Open</a>
           <button onClick={copy} className={btn}>{copied ? "Copied" : "Copy link"}</button>
           <button onClick={() => setEditing((v) => !v)} className={btn}>{editing ? "Cancel" : "Update"}</button>
+          <button onClick={() => setLinkOpen((v) => !v)} aria-expanded={linkOpen} className={btn}>{linkOpen ? "Close" : "Link & domain"}</button>
           <button onClick={remove} className={`${btn} text-red-600`}>Delete</button>
         </div>
       </div>
+      {linkOpen && (
+        <div className="mt-4 border-t border-[var(--line)] pt-4">
+          <LinkSettings id={r.id} slug={r.slug} customDomain={r.customDomain ?? null} domainVerified={!!r.domainVerified} enabled={domainsEnabled} host={typeof window !== "undefined" ? window.location.host : ""} />
+        </div>
+      )}
       {editing && (
         <div className="mt-4 border-t border-[var(--line)] pt-4">
           <ReportForm id={r.id} initialTitle={r.title} initialSubtitle={r.subtitle} onDone={() => setEditing(false)} />

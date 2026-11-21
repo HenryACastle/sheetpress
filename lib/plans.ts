@@ -5,4 +5,5 @@ export const FREE = {
   maxSheets: 10,
   maxColumns: 40,
   maxFileBytes: 2 * 1024 * 1024,
+  maxCustomDomains: 1,
 } as const;

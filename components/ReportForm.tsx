@@ -54,6 +54,11 @@ export default function ReportForm({ id, initialTitle = "", initialSubtitle = ""
           <input name="subtitle" maxLength={160} defaultValue={initialSubtitle} placeholder="Weekly SEO status" className={`${input} mt-1`} />
         </label>
       </div>
+      {!id && (
+        <label className="block text-sm font-medium">Link name <span className="font-normal text-[var(--mute)]">(optional, letters, numbers and dashes)</span>
+          <input name="slug" maxLength={60} placeholder="acme-q4-report" className={`${input} mt-1 sm:max-w-sm`} autoCapitalize="none" autoCorrect="off" spellCheck={false} />
+        </label>
+      )}
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="block text-sm font-medium">Excel file (.xlsx, up to 2 MB)
           <input name="file" type="file" required accept=".xlsx" className={`${input} mt-1`} />

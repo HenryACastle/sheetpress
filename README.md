@@ -33,9 +33,17 @@ Google Sheets sync, custom domains per report, viewer logins (Clerk) for team-on
 - **Settings sheet** (not shown): `Setting | Value` rows: Title, Subtitle, Logo (https image), Logo link, Accent (#hex), Theme (light/dark), Footer. Validated in `lib/parse.ts`; bad values are ignored.
 - **Formulas** are fine: the parser reads the saved result, so write files with the results cached (Excel does; `tools/barcrawlerz-seo-audit/make_sheetpress_report.py` does via xlsxwriter).
 
-## Report domains
-`REPORT_DOMAINS="seo.example.com=report-slug"` (comma separated pairs) makes that host show one report at its root and nothing else of the app. Add the domain in Vercel, point DNS at Vercel, redeploy. The slug is the part after `/r/` in the report link. Implemented in `proxy.ts` (404 for everything else on that host).
+## Report domains and link names
+Two ways to put a report on its own address.
 
+**1. Self-service custom domains (database-backed).** In the dashboard a user opens a report, chooses **Link & domain**, and enters e.g. `reports.theircompany.com`. `lib/domain-service.ts` adds it to our Vercel project through the Vercel REST API (`lib/vercel-domains.ts`), the UI shows the exact DNS record (CNAME for a subdomain, A for a root domain, plus a TXT if Vercel asks for ownership proof), polls until Vercel reports the domain verified AND correctly configured, then sets `reports.domain_verified`. `proxy.ts` serves a verified host as that one report at its root and 404s everything else on the host. Rules: unverified domains never serve; one domain per report; free plan = 1 per account (`FREE.maxCustomDomains`); an unfinished claim older than 24h can be taken over by whoever really controls the DNS, a verified one never can.
+- Needs these server-only env vars in Vercel (without them the panel says "coming soon" and the API returns 503): `VERCEL_API_TOKEN` (token for the team that owns the project), `VERCEL_PROJECT_ID`, `VERCEL_TEAM_ID` (omit for a personal account).
+- After a real end-to-end test, set `NEXT_PUBLIC_CUSTOM_DOMAINS=1` so the landing page advertises it.
+- Tests: `npm run test:domains` (validators, DNS-instruction logic, Vercel client request shapes, and the full service flow against the database with a simulated Vercel; it creates and deletes `e2e_dom_*` rows).
+
+**2. `REPORT_DOMAINS` operator override** (no database). `REPORT_DOMAINS="seo.example.com=report-slug"` (comma separated pairs) makes that host show one report. Checked first in `proxy.ts`. Add the domain in Vercel and point DNS at it yourself. Good for client domains you manage by hand.
+
+**Link names.** `/r/<name>` is chosen when publishing (optional) or renamed later (`PUT /api/reports/:id/slug`). Reserved names and `demo-*` are blocked; renaming breaks the old link.
 
 ## Editable lists and show codes (shopping list template)
 - Dashboard > **New shopping list** creates an editable list (no Excel needed). `/app/lists/<id>` is the editor: quick add, edit cells, tick Bought, per-row **On site**, per-column **public/private**, totals, Save (PATCH `/api/reports/:id`), **Download Excel** (`GET /api/reports/:id/xlsx`, everything including private data) and **Upload Excel** (PUT, replaces the list, stays editable).
