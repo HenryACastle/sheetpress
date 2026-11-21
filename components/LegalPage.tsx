@@ -1,14 +1,10 @@
-import Link from "next/link";
-import Logo from "./Logo";
+import SiteHeader from "./landing/SiteHeader";
 import { SUPPORT_EMAIL } from "@/lib/site";
 
 export default function LegalPage({ title, updated, children }: { title: string; updated: string; children: React.ReactNode }) {
   return (
     <>
-      <header className="mx-auto flex max-w-3xl items-center justify-between px-4 py-4">
-        <Logo />
-        <Link href="/" className="text-sm text-[var(--mute)] hover:text-[var(--ink)]">Back to home</Link>
-      </header>
+      <SiteHeader />
       <main className="mx-auto max-w-3xl px-4 pb-20 pt-6">
         <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
         <p className="mt-1 text-sm text-[var(--mute)]">Last updated {updated}</p>

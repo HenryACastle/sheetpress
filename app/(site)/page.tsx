@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Logo from "@/components/Logo";
+import SiteHeader, { NAV_LINKS } from "@/components/landing/SiteHeader";
 import ReportPreview from "@/components/landing/ReportPreview";
 import { FREE } from "@/lib/plans";
 import { SITE_HOST } from "@/lib/site";
@@ -47,7 +48,6 @@ const faqs: [string, string][] = [
 ];
 
 const soon = <span className="ml-2 rounded bg-[var(--line)] px-1.5 py-0.5 align-middle text-[11px] font-medium text-[var(--mute)]">Coming soon</span>;
-const nav = [["Examples", "#examples"], ["Use cases", "#use-cases"], ["How it works", "#how"], ["Pricing", "#pricing"], ["FAQ", "#faq"]];
 
 const examples = [
   { title: "Status report", blurb: "A 23-site rollout: headline tiles, colored status chips, a breakdown bar and progress bars, all from one workbook.", view: "/r/demo-q4-site-rollout", file: "/examples/q4-site-rollout.xlsx", tag: "Report and dashboard" },
@@ -58,14 +58,7 @@ export default function Home() {
   const cta = "/sign-up";
   return (
     <div>
-      <header className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
-        <Logo />
-        <nav className="flex items-center gap-5 text-sm" aria-label="Main">
-          {nav.map(([l, h]) => <a key={h} href={h} className="hidden text-[var(--mute)] hover:text-[var(--ink)] md:block">{l}</a>)}
-          <Link href="/sign-in" className="text-[var(--mute)] hover:text-[var(--ink)]">Sign in</Link>
-          <Link href={cta} className="rounded-lg bg-[var(--accent)] px-3.5 py-2 font-semibold text-white hover:bg-[var(--accent-hover)]">Start free</Link>
-        </nav>
-      </header>
+      <SiteHeader />
 
       <main>
         {/* Hero */}
@@ -82,7 +75,7 @@ export default function Home() {
         </section>
 
         {/* How it works */}
-        <section id="how" className="mx-auto max-w-5xl scroll-mt-6 px-4 py-14">
+        <section id="how" className="mx-auto max-w-5xl px-4 py-14">
           <h2 className="text-center text-3xl font-bold tracking-tight">From spreadsheet to shareable in three steps</h2>
           <ol className="mt-8 grid gap-4 md:grid-cols-3">
             {steps.map(([t, d], i) => (
@@ -96,7 +89,7 @@ export default function Home() {
         </section>
 
         {/* Live examples */}
-        <section id="examples" className="mx-auto max-w-5xl scroll-mt-6 px-4 py-14">
+        <section id="examples" className="mx-auto max-w-5xl px-4 py-14">
           <h2 className="text-center text-3xl font-bold tracking-tight">See it in action</h2>
           <p className="mx-auto mt-3 max-w-2xl text-center text-[var(--mute)]">Both pages below were built from the Excel files you can download next to them. Fictional data, real output.</p>
           <div className="mt-8 grid gap-4 md:grid-cols-2">
@@ -115,7 +108,7 @@ export default function Home() {
         </section>
 
         {/* Use cases */}
-        <section id="use-cases" className="mx-auto max-w-5xl scroll-mt-6 px-4 py-14">
+        <section id="use-cases" className="mx-auto max-w-5xl px-4 py-14">
           <h2 className="text-center text-3xl font-bold tracking-tight">Use cases</h2>
           <p className="mx-auto mt-3 max-w-2xl text-center text-[var(--mute)]">If it lives in a spreadsheet today, it can be a page, a report or a tool your team opens from a link.</p>
           <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -130,7 +123,7 @@ export default function Home() {
         </section>
 
         {/* Features / why */}
-        <section id="features" className="mx-auto max-w-5xl scroll-mt-6 px-4 py-14">
+        <section id="features" className="mx-auto max-w-5xl px-4 py-14">
           <h2 className="text-center text-3xl font-bold tracking-tight">Built for people who live in Excel</h2>
           <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {features.map(([t, d, isSoon]) => (
@@ -143,7 +136,7 @@ export default function Home() {
         </section>
 
         {/* Pricing */}
-        <section id="pricing" className="mx-auto max-w-3xl scroll-mt-6 px-4 py-14">
+        <section id="pricing" className="mx-auto max-w-3xl px-4 py-14">
           <h2 className="mb-8 text-center text-3xl font-bold tracking-tight">Pricing</h2>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="rounded-xl border-2 border-[var(--accent)] bg-[var(--card)] p-6">
@@ -166,7 +159,7 @@ export default function Home() {
         </section>
 
         {/* FAQ */}
-        <section id="faq" className="mx-auto max-w-3xl scroll-mt-6 px-4 py-14">
+        <section id="faq" className="mx-auto max-w-3xl px-4 py-14">
           <h2 className="mb-8 text-center text-3xl font-bold tracking-tight">Questions</h2>
           <div className="divide-y divide-[var(--line)] rounded-xl border border-[var(--line)] bg-[var(--card)]">
             {faqs.map(([q, a]) => (
@@ -194,7 +187,7 @@ export default function Home() {
         <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4 px-4 text-sm text-[var(--mute)]">
           <Logo />
           <nav className="flex flex-wrap gap-5" aria-label="Footer">
-            {nav.map(([l, h]) => <a key={h} href={h} className="hover:text-[var(--ink)]">{l}</a>)}
+            {NAV_LINKS.map(([l, h]) => <a key={h} href={h} className="hover:text-[var(--ink)]">{l}</a>)}
             <Link href="/sign-in" className="hover:text-[var(--ink)]">Sign in</Link>
             <Link href="/privacy" className="hover:text-[var(--ink)]">Privacy</Link>
             <Link href="/terms" className="hover:text-[var(--ink)]">Terms</Link>
