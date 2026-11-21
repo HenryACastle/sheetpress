@@ -7,11 +7,13 @@ export default function WorkbookTips() {
       <summary className="cursor-pointer font-medium">How to set up your workbook</summary>
       <ul className="mt-3 list-disc space-y-1.5 pl-5 text-[var(--mute)]">
         <li>Each sheet becomes a tab. The first row of each sheet is the column headers.</li>
-        <li>Name a sheet <b>Summary</b>, <b>Overview</b> or <b>KPIs</b> to turn its rows into headline tiles. Columns: label, value, optional note.</li>
-        <li>A column named <b>Status</b> with values like Done, In progress or Blocked becomes colored chips with a filter bar.</li>
-        <li>A column with <b>%</b> or <b>Progress</b> in its name becomes a progress bar.</li>
-        <li>Full web addresses (https://...) become clickable links.</li>
-        <li>Limits: .xlsx up to 2 MB, {FREE.maxSheets} sheets, {FREE.maxRowsPerSheet.toLocaleString()} rows per sheet. Only cell values are imported; formulas show their last saved result.</li>
+        <li><b>KPI tiles:</b> name a sheet <b>Summary</b>, <b>Overview</b>, <b>KPIs</b> or start it with <b>KPI </b>. Columns: label, value, optional note. Put one number per row.</li>
+        <li><b>Line graph:</b> start a sheet name with <b>Chart </b> (for example <b>Chart Network daily</b>). The first column is the horizontal axis (dates work best), every number column becomes a line, and the table shows underneath. A much smaller series (clicks next to impressions) gets its own right-hand axis.</li>
+        <li><b>Table:</b> any other sheet name. Searchable and sortable.</li>
+        <li><b>Logo, colours and theme:</b> add a sheet named <b>Settings</b> with two columns, Setting and Value. Rows it understands: <b>Title</b>, <b>Subtitle</b>, <b>Logo</b> (an https:// image address), <b>Logo link</b>, <b>Accent</b> (like #ffe19f), <b>Theme</b> (light or dark) and <b>Footer</b>. The Settings sheet is not shown as a tab, and a Title here replaces the title box above.</li>
+        <li>A column named <b>Status</b> with values like Done, In progress or Blocked becomes colored chips with a filter bar. A column with <b>Progress</b> or <b>%</b> in its name becomes a progress bar (not rate, CTR or share columns).</li>
+        <li>Full web addresses (https://...) become clickable links. Formulas work: SheetPress shows the last result Excel saved, so open and save the file in Excel once after editing.</li>
+        <li>Limits: .xlsx up to 2 MB, {FREE.maxSheets} sheets, {FREE.maxRowsPerSheet.toLocaleString()} rows per sheet.</li>
       </ul>
     </details>
   );

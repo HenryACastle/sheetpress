@@ -29,7 +29,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
         <section className="rounded-xl border border-[var(--line)] bg-[var(--card)] p-5">
           {firstRun ? <h2 className="text-xl font-bold">Publish a report</h2> : <h1 className="text-xl font-bold">Publish a report</h1>}
           <p className="mb-4 mt-1 text-sm text-[var(--mute)]">
-            Each sheet becomes a tab. Name a sheet <b>Summary</b> (columns: label, value, note) for KPI tiles. {list.length} of {FREE.maxReports} free reports used.
+            Each sheet becomes a tab. Name a sheet <b>Summary</b> for KPI tiles, start it with <b>Chart </b> for a line graph, or add a <b>Settings</b> sheet for your logo and colours. {list.length} of {FREE.maxReports} free reports used.
           </p>
           {full ? <p className="text-sm">You have reached the free limit. Delete a report to publish another.</p> : <ReportForm />}
           <WorkbookTips />

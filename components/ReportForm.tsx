@@ -48,7 +48,7 @@ export default function ReportForm({ id, initialTitle = "", initialSubtitle = ""
     <form onSubmit={submit} className="space-y-3">
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="block text-sm font-medium">Title
-          <input name="title" required maxLength={80} defaultValue={initialTitle} placeholder="Barcrawlerz progress" className={`${input} mt-1`} />
+          <input name="title" maxLength={80} defaultValue={initialTitle} placeholder="Barcrawlerz progress" className={`${input} mt-1`} />
         </label>
         <label className="block text-sm font-medium">Subtitle <span className="font-normal text-[var(--mute)]">(optional)</span>
           <input name="subtitle" maxLength={160} defaultValue={initialSubtitle} placeholder="Weekly SEO status" className={`${input} mt-1`} />

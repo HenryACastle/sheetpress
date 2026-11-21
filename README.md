@@ -24,3 +24,14 @@ Stack: Next.js 16 + Clerk v7 (owner login) + Neon Postgres/Drizzle. Reports rend
 
 ## Roadmap
 Google Sheets sync, custom domains per report, viewer logins (Clerk) for team-only reports, Stripe + Pro plan, rate limiting on `/r/*` unlock attempts (currently client-side PBKDF2 only).
+
+
+## Workbook conventions (sheet names decide how a sheet is shown)
+- **KPI tiles:** `Summary`, `Overview`, `KPIs`, `Dashboard`, or a name starting `KPI `. Columns: label, value, note.
+- **Line graph:** a name starting `Chart ` (e.g. `Chart Network daily`). First column = x axis, each number column = a line, table underneath. Series more than 8x smaller than the biggest get a right-hand axis.
+- **Table:** anything else.
+- **Settings sheet** (not shown): `Setting | Value` rows: Title, Subtitle, Logo (https image), Logo link, Accent (#hex), Theme (light/dark), Footer. Validated in `lib/parse.ts`; bad values are ignored.
+- **Formulas** are fine: the parser reads the saved result, so write files with the results cached (Excel does; `tools/barcrawlerz-seo-audit/make_sheetpress_report.py` does via xlsxwriter).
+
+## Report domains
+`REPORT_DOMAINS="seo.example.com=report-slug"` (comma separated pairs) makes that host show one report at its root and nothing else of the app. Add the domain in Vercel, point DNS at Vercel, redeploy. The slug is the part after `/r/` in the report link. Implemented in `proxy.ts` (404 for everything else on that host).
