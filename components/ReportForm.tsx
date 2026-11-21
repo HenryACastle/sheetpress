@@ -10,21 +10,41 @@ export default function ReportForm({ id, initialTitle = "", initialSubtitle = ""
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [published, setPublished] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setBusy(true); setError("");
+    setBusy(true); setError(""); setPublished(null);
     const form = e.currentTarget;
     try {
       const res = await fetch(id ? `/api/reports/${id}` : "/api/reports", { method: id ? "PUT" : "POST", body: new FormData(form) });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) { setError(json.error ?? "Upload failed."); return; }
-      form.reset(); onDone?.(); router.refresh();
+      form.reset();
+      if (!id && json.slug) setPublished(json.slug);
+      onDone?.(); router.refresh();
     } catch { setError("Network error. Try again."); }
     finally { setBusy(false); }
   }
 
+  const link = published && typeof window !== "undefined" ? `${window.location.origin}/r/${published}` : "";
+  async function copy() {
+    try { await navigator.clipboard.writeText(link); setCopied(true); setTimeout(() => setCopied(false), 1500); } catch {}
+  }
+
   return (
+    <>
+    {published && (
+      <div role="status" className="mb-4 rounded-lg border border-[var(--brand-green)] bg-[var(--accent-tint)] p-4">
+        <p className="font-semibold">Your report is live</p>
+        <p className="mt-1 break-all text-sm text-[var(--slate)]">{link}</p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <a href={`/r/${published}`} target="_blank" rel="noopener noreferrer" className="rounded-lg bg-[var(--accent)] px-3 py-1.5 text-sm font-semibold text-white hover:bg-[var(--accent-hover)]">Open report</a>
+          <button type="button" onClick={copy} className="rounded-lg border border-[var(--line)] bg-white px-3 py-1.5 text-sm hover:bg-[var(--bg)]">{copied ? "Copied" : "Copy link"}</button>
+        </div>
+      </div>
+    )}
     <form onSubmit={submit} className="space-y-3">
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="block text-sm font-medium">Title
@@ -47,5 +67,6 @@ export default function ReportForm({ id, initialTitle = "", initialSubtitle = ""
         {busy ? "Publishing..." : id ? "Replace workbook" : "Publish report"}
       </button>
     </form>
+    </>
   );
 }
