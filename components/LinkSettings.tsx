@@ -55,9 +55,9 @@ export default function LinkSettings({ id, slug, customDomain, domainVerified, e
   useEffect(() => {
     if (!enabled || !pending) return;
     polls.current = 0;
-    refresh();
+    const first = setTimeout(refresh, 0);
     const t = setInterval(() => { if (++polls.current > POLL_MAX) { clearInterval(t); return; } refresh(); }, POLL_MS);
-    return () => clearInterval(t);
+    return () => { clearTimeout(first); clearInterval(t); };
   }, [enabled, pending, refresh]);
 
   async function connect(e: React.FormEvent) {
