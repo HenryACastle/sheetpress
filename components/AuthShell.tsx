@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Logo from "./Logo";
+import AuthLoadGuard from "./AuthLoadGuard";
 
 const points = [
   ["Upload an .xlsx, get a live page", "From spreadsheet to a shareable link in under a minute."],
@@ -32,7 +33,7 @@ export default function AuthShell({ children, footer }: { children: React.ReactN
 
       <main className="flex flex-col items-center justify-center gap-5 px-4 py-10">
         <div className="lg:hidden"><Logo /></div>
-        <div className="flex w-full max-w-[26rem] justify-center">{children}</div>
+        <div className="flex w-full max-w-[26rem] flex-col items-center gap-4"><AuthLoadGuard>{children}</AuthLoadGuard></div>
         {footer && <div className="max-w-[26rem] text-center text-xs text-[var(--mute)]">{footer}</div>}
         <Link href="/" className="text-sm text-[var(--mute)] hover:text-[var(--ink)]">&larr; Back to home</Link>
       </main>
