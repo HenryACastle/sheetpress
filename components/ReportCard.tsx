@@ -1,9 +1,10 @@
 "use client";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import ReportForm from "./ReportForm";
 
-export type CardReport = { id: string; slug: string; title: string; subtitle: string; protectedByPassword: boolean; sheetCount: number; rowCount: number; updatedAt: string };
+export type CardReport = { id: string; slug: string; title: string; subtitle: string; protectedByPassword: boolean; sheetCount: number; rowCount: number; updatedAt: string; editable?: boolean };
 
 export default function ReportCard({ r }: { r: CardReport }) {
   const router = useRouter();
@@ -26,10 +27,11 @@ export default function ReportCard({ r }: { r: CardReport }) {
         <div className="min-w-0">
           <h3 className="truncate font-semibold">{r.title}</h3>
           <p className="text-sm text-[var(--mute)]">
-            {r.protectedByPassword ? "Password protected" : "Public link"} · {r.sheetCount} sheets · {r.rowCount} rows · updated {new Date(r.updatedAt).toLocaleDateString()}
+            {r.editable ? "Editable list · " : ""}{r.protectedByPassword ? "Password protected" : "Public link"} · {r.sheetCount} sheets · {r.rowCount} rows · updated {new Date(r.updatedAt).toLocaleDateString()}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          {r.editable && <Link href={`/app/lists/${r.id}`} className={`${btn} font-semibold`}>Edit list</Link>}
           <a href={path} target="_blank" rel="noopener noreferrer" className={btn}>Open</a>
           <button onClick={copy} className={btn}>{copied ? "Copied" : "Copy link"}</button>
           <button onClick={() => setEditing((v) => !v)} className={btn}>{editing ? "Cancel" : "Update"}</button>

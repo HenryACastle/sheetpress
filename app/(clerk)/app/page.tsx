@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { UserButton } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
 import Logo from "@/components/Logo";
+import NewListButton from "@/components/NewListButton";
 import ReportCard from "@/components/ReportCard";
 import ReportForm from "@/components/ReportForm";
 import WelcomeGuide from "@/components/WelcomeGuide";
@@ -34,6 +35,15 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
           {full ? <p className="text-sm">You have reached the free limit. Delete a report to publish another.</p> : <ReportForm />}
           <WorkbookTips />
         </section>
+        {!full && (
+          <section className="rounded-xl border border-[var(--line)] bg-[var(--card)] p-5">
+            <h2 className="text-xl font-bold">Start from a template</h2>
+            <p className="mb-4 mt-1 text-sm text-[var(--mute)]">
+              A <b>shopping list</b> you manage right here: add, edit and tick things off, choose what the public page shows, and still download or upload it as Excel.
+            </p>
+            <NewListButton />
+          </section>
+        )}
         <section>
           <h2 className="mb-3 text-lg font-semibold">Your reports</h2>
           {list.length === 0 ? (

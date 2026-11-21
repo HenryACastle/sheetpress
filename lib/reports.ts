@@ -8,6 +8,7 @@ export const listReports = (userId: string) =>
     id: reports.id, slug: reports.slug, title: reports.title, subtitle: reports.subtitle,
     protectedByPassword: reports.protectedByPassword, sheetCount: reports.sheetCount,
     rowCount: reports.rowCount, updatedAt: reports.updatedAt,
+    editable: sql<boolean>`coalesce(${reports.payload}->'data'->>'editable', 'false') = 'true'`,
   }).from(reports).where(eq(reports.userId, userId)).orderBy(desc(reports.updatedAt));
 
 export async function countReports(userId: string) {
@@ -19,5 +20,10 @@ export const ownedWhere = (id: string, userId: string) => and(eq(reports.id, id)
 
 export async function getPublicBySlug(slug: string) {
   const [r] = await db().select({ title: reports.title, payload: reports.payload }).from(reports).where(eq(reports.slug, slug)).limit(1);
+  return r ?? null;
+}
+
+export async function getOwned(id: string, userId: string) {
+  const [r] = await db().select().from(reports).where(ownedWhere(id, userId)).limit(1);
   return r ?? null;
 }

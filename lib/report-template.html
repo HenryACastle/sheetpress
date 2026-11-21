@@ -74,6 +74,7 @@ a{color:var(--accent)}
 .tip{position:absolute;pointer-events:none;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12.5px;box-shadow:0 4px 14px rgba(0,0,0,.12);z-index:5;white-space:nowrap}
 .tip b{display:block;margin-bottom:3px}.tip i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px}
 .swatch{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.sums{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:12px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);font-size:14px}.sums b{font-size:17px}.sums span{color:var(--mute)}
 .axisnote{color:var(--mute);font-size:12px;margin:2px 0 10px}
 @media (max-width:600px){.logo{height:28px;max-width:130px}h1{font-size:20px}.tile .v{font-size:26px}.top .in{padding-top:10px;padding-bottom:8px}.sub{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
 </style>
@@ -117,10 +118,10 @@ function unlockUI(){
 
 function statusClass(v){
   var s=String(v).toLowerCase();
-  if(/^(done|complete|completed|live|yes|pass|passed|ok|fixed|resolved|published|green|shipped)\b/.test(s))return'c-ok';
+  if(/^(done|complete|completed|live|yes|pass|passed|ok|fixed|resolved|published|green|shipped|bought|purchased|got it)\b/.test(s))return'c-ok';
   if(/(progress|doing|wip|review|started|ongoing|testing|scheduled|yellow)/.test(s)&&!/not started/.test(s))return'c-prog';
   if(/^(blocked|fail|failed|late|overdue|no|red|stuck|missing|error|at risk)\b/.test(s))return'c-bad';
-  if(/(open|pending|waiting|hold|todo|to do|not started|planned|partial|amber|queued)/.test(s))return'c-warn';
+  if(/(open|pending|waiting|hold|todo|to do|not started|planned|partial|amber|queued|needed|to buy)/.test(s))return'c-warn';
   return'c-neu';
 }
 var STATUS_COLOR={'c-ok':'var(--ok)','c-prog':'var(--prog)','c-bad':'var(--bad)','c-warn':'var(--warn)','c-neu':'var(--mute)'};
@@ -190,6 +191,21 @@ function tableView(sheet){
       legend.appendChild(b);
     });
     root.appendChild(legend);
+  }
+  var qi=sheet.headers.findIndex(function(h){return /^(qty|quantity)$/i.test(h)}),pi=sheet.headers.findIndex(function(h){return /^(price|cost)$/i.test(h)});
+  var listy=pi>=0||(sc>=0&&sheet.rows.some(function(r){return /^(needed|bought|purchased|to buy|got it|have)$/i.test(String(r[sc]).trim())}));
+  if(listy){
+    var sums=el('div','sums'),cu=(window.__CUR__||'$'),tot=0,got=0,done=/^(bought|done|got it|have|complete|completed|purchased)$/i;
+    sheet.rows.forEach(function(r){
+      var pr=pi>=0?parseFloat(r[pi]):NaN,qn=qi>=0?(parseFloat(r[qi])||1):1;
+      if(!isNaN(pr))tot+=pr*qn;
+      if(sc>=0&&done.test(String(r[sc]).trim()))got++;
+    });
+    function part(v,l){var d=el('div');d.appendChild(el('b',null,v));d.appendChild(document.createTextNode(' '));d.appendChild(el('span',null,l));sums.appendChild(d)}
+    part(String(sheet.rows.length),'items');
+    if(sc>=0)part(String(got),'done');
+    if(pi>=0)part(cu+tot.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}),'estimated total');
+    root.appendChild(sums);
   }
   var tools=el('div','tools'),q=el('input');q.type='search';q.placeholder='Search '+sheet.name+'...';q.setAttribute('aria-label','Search');
   var count=el('span','count');tools.append(q,count);root.appendChild(tools);
@@ -303,7 +319,7 @@ function chartView(sheet){
 
 function render(D){
   document.title=D.title;
-  var B=D.brand||{},root=document.documentElement;
+  var B=D.brand||{},root=document.documentElement;window.__CUR__=B.currency||'$';
   if(B.accent)root.style.setProperty('--accent',B.accent);
   if(B.theme&&!root.getAttribute('data-theme'))root.setAttribute('data-theme',B.theme);
   var top=el('header','top'),topIn=el('div','in'),head=el('div','head'),left=el('div');

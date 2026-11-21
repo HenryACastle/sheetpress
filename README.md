@@ -35,3 +35,11 @@ Google Sheets sync, custom domains per report, viewer logins (Clerk) for team-on
 
 ## Report domains
 `REPORT_DOMAINS="seo.example.com=report-slug"` (comma separated pairs) makes that host show one report at its root and nothing else of the app. Add the domain in Vercel, point DNS at Vercel, redeploy. The slug is the part after `/r/` in the report link. Implemented in `proxy.ts` (404 for everything else on that host).
+
+
+## Editable lists and show codes (shopping list template)
+- Dashboard > **New shopping list** creates an editable list (no Excel needed). `/app/lists/<id>` is the editor: quick add, edit cells, tick Bought, per-row **On site**, per-column **public/private**, totals, Save (PATCH `/api/reports/:id`), **Download Excel** (`GET /api/reports/:id/xlsx`, everything including private data) and **Upload Excel** (PUT, replaces the list, stays editable).
+- `public/examples/shopping-list.xlsx` is the Excel template (built by `tools/sheetpress/make_shopping_list_template.py` in the vault): Show column, `Notes [private]`, a `Help (private)` sheet, status/Show dropdowns, a formula column.
+- **Show codes** (`lib/visibility.ts`, enforced server-side in `/r/[slug]`; hidden data is not in the page source): a `Show`/`Public`/`Visible`/`On site` column (yes/no per row, blank = shown), `[private]`/`[hide]` (or round brackets) on a column header, `(private)`/`(hide)` on a sheet name (Excel forbids `[ ]` in sheet names). `npm test` checks them.
+- Editable lists live in the existing `reports.payload` (`data.editable`), so there is no schema change. Not password-protectable (the server cannot re-encrypt without the password); password uploads keep only the public view.
+- Settings sheet also takes `Currency` (shown before the estimated total).

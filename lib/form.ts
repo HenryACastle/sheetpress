@@ -1,6 +1,7 @@
 import { FREE } from "./plans";
 import { parseWorkbook } from "./parse";
 import { encrypt, UserError, type Payload, type ReportData } from "./report";
+import { publicView } from "./visibility";
 
 export type Built = { title: string; subtitle: string; payload: Payload; protectedByPassword: boolean; sheetCount: number; rowCount: number };
 
@@ -25,7 +26,9 @@ export async function buildFromForm(form: FormData, requireFile: boolean): Promi
   subtitle = parsed.subtitle || subtitle;
   if (!title) throw new UserError("Give the report a title (or add a Title row to a Settings sheet).");
   const data: ReportData = { title, subtitle, generated: new Date().toISOString().slice(0, 10), sheets, ...(parsed.brand ? { brand: parsed.brand } : {}) };
-  const payload: Payload = password ? { enc: await encrypt(JSON.stringify(data), password) } : { data };
+  // A password report keeps only the public view: its data is encrypted with the password, which we never store,
+  // so we could not filter it later. Anything marked private or hide is not kept.
+  const payload: Payload = password ? { enc: await encrypt(JSON.stringify(publicView(data)), password) } : { data };
   return {
     title, subtitle, payload,
     protectedByPassword: !!password,

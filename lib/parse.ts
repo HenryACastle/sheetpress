@@ -23,11 +23,23 @@ const KPI_NAME = /^(summary|overview|kpis?|dashboard)$|^kpis?[\s:_-]/i;
 const CHART_NAME = /^chart[\s:_-]+/i;
 const SETTINGS_NAME = /^(settings|setup|report settings|branding)$/i;
 
+// Show codes ride on names and headers: "Cost [private]" hides that column from the public page,
+// "Notes [hide]" the same, "Plan (private)" as a SHEET name hides the whole sheet (Excel forbids [ ] in sheet names).
+// See lib/visibility.ts.
+const CODE = /\s*[[(](private|hide|hidden|public|show)[\])]\s*$/i;
+const stripCode = (n: string) => n.replace(CODE, "").trim();
+
 export function sheetKind(name: string): Sheet["kind"] {
-  if (CHART_NAME.test(name)) return "chart";
-  return KPI_NAME.test(name) ? "summary" : "table";
+  const n = stripCode(name);
+  if (CHART_NAME.test(n)) return "chart";
+  return KPI_NAME.test(n) ? "summary" : "table";
 }
-export const displayName = (name: string) => name.replace(CHART_NAME, "").replace(/^kpis?[\s:_-]+(?=.)/i, "").trim() || name;
+// Keeps a trailing show code (it is the owner's setting) but drops the Chart/KPI prefix.
+export const displayName = (name: string) => {
+  const code = (name.match(CODE)?.[0] ?? "").trim();
+  const base = stripCode(name).replace(CHART_NAME, "").replace(/^kpis?[\s:_-]+(?=.)/i, "").trim() || stripCode(name);
+  return code ? `${base} ${code}` : base;
+};
 
 const httpsUrl = (v: unknown) => { const s = String(v ?? "").trim(); return /^https:\/\/[^\s"'<>]{4,300}$/i.test(s) ? s : undefined; };
 
@@ -42,6 +54,7 @@ export function parseSettings(rows: (string | number)[][]): { brand?: Brand; tit
   if (/^#[0-9a-f]{6}$/i.test(accent)) brand.accent = accent.toLowerCase();
   const theme = (kv["theme"] ?? "").toLowerCase(); if (theme === "light" || theme === "dark") brand.theme = theme;
   const footer = (kv["footer"] ?? "").slice(0, 140); if (footer) brand.footer = footer;
+  const cur = (kv["currency"] ?? kv["currency symbol"] ?? "").slice(0, 3); if (cur && !/[<>&"'\s]/.test(cur)) brand.currency = cur;
   return { brand: Object.keys(brand).length ? brand : undefined, title: kv["title"]?.slice(0, 80) || undefined, subtitle: kv["subtitle"]?.slice(0, 160) || undefined };
 }
 

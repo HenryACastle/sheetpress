@@ -4,8 +4,9 @@ import { SITE_URL } from "./site";
 
 export type Sheet = { name: string; kind: "summary" | "table" | "chart"; headers: string[]; rows: (string | number)[][] };
 // Look and feel, set from a "Settings" sheet in the workbook. Everything is validated in lib/parse.ts.
-export type Brand = { logo?: string; link?: string; accent?: string; theme?: "light" | "dark"; footer?: string };
-export type ReportData = { title: string; subtitle: string; generated: string; sheets: Sheet[]; brand?: Brand };
+export type Brand = { logo?: string; link?: string; accent?: string; theme?: "light" | "dark"; footer?: string; currency?: string };
+// editable: this report is managed from the SheetPress dashboard (add, edit, check off) as well as by .xlsx upload.
+export type ReportData = { title: string; subtitle: string; generated: string; sheets: Sheet[]; brand?: Brand; editable?: boolean; template?: "shopping" };
 export type EncBlob = { salt: string; iv: string; ct: string; iter: number };
 export type Payload = { data: ReportData } | { enc: EncBlob };
 

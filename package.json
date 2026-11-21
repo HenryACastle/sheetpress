@@ -10,7 +10,8 @@
     "lint": "eslint",
     "db:push": "drizzle-kit push",
     "seed:demo": "tsx scripts/seed-demo.ts",
-    "examples": "tsx scripts/make-example-xlsx.ts"
+    "examples": "tsx scripts/make-example-xlsx.ts",
+    "test": "tsx scripts/test-visibility.ts"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.5.9",
