@@ -4,7 +4,7 @@ import { SITE_URL } from "./site";
 
 export type Sheet = { name: string; kind: "summary" | "table" | "chart"; headers: string[]; rows: (string | number)[][] };
 // Look and feel, set from a "Settings" sheet in the workbook. Everything is validated in lib/parse.ts.
-export type Brand = { logo?: string; link?: string; accent?: string; theme?: "light" | "dark"; footer?: string; currency?: string };
+export type Brand = { logo?: string; link?: string; accent?: string; theme?: "light" | "dark"; footer?: string; currency?: string; hideBadge?: boolean };
 // editable: this report is managed from the SheetPress dashboard (add, edit, check off) as well as by .xlsx upload.
 export type ReportData = { title: string; subtitle: string; generated: string; sheets: Sheet[]; brand?: Brand; editable?: boolean; template?: "shopping" };
 export type EncBlob = { salt: string; iv: string; ct: string; iter: number };
@@ -12,7 +12,8 @@ export type EncBlob = { salt: string; iv: string; ct: string; iter: number };
 // Per-email access is planned: it will be another mode here ({ mode: "emails", ... }) behind the same gate.
 export type Access = { mode: "public" } | { mode: "password"; hash: string; v: number; setAt: string };
 // { enc } is the old browser-encrypted protection, kept readable for reports published before server-side access.
-export type Payload = { data: ReportData; access?: Access } | { enc: EncBlob };
+// branding: look and feel chosen in the dashboard. It overrides the workbook's Settings sheet and survives re-uploads.
+export type Payload = { data: ReportData; access?: Access; branding?: Brand } | { enc: EncBlob };
 
 export class UserError extends Error {}
 

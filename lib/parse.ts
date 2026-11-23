@@ -54,6 +54,7 @@ export function parseSettings(rows: (string | number)[][]): { brand?: Brand; tit
   if (/^#[0-9a-f]{6}$/i.test(accent)) brand.accent = accent.toLowerCase();
   const theme = (kv["theme"] ?? "").toLowerCase(); if (theme === "light" || theme === "dark") brand.theme = theme;
   const footer = (kv["footer"] ?? "").slice(0, 140); if (footer) brand.footer = footer;
+  const hb = (kv["hide sheetpress"] ?? kv["hide badge"] ?? kv["hide branding"] ?? "").toLowerCase(); if (/^(yes|y|true|1|on)$/.test(hb)) brand.hideBadge = true;
   const cur = (kv["currency"] ?? kv["currency symbol"] ?? "").slice(0, 3); if (cur && !/[<>&"'\s]/.test(cur)) brand.currency = cur;
   return { brand: Object.keys(brand).length ? brand : undefined, title: kv["title"]?.slice(0, 80) || undefined, subtitle: kv["subtitle"]?.slice(0, 160) || undefined };
 }

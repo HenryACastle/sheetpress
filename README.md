@@ -30,7 +30,7 @@ Google Sheets sync, custom domains per report, viewer logins (Clerk) for team-on
 - **KPI tiles:** `Summary`, `Overview`, `KPIs`, `Dashboard`, or a name starting `KPI `. Columns: label, value, note.
 - **Line graph:** a name starting `Chart ` (e.g. `Chart Network daily`). First column = x axis, each number column = a line, table underneath. Series more than 8x smaller than the biggest get a right-hand axis.
 - **Table:** anything else.
-- **Settings sheet** (not shown): `Setting | Value` rows: Title, Subtitle, Logo (https image), Logo link, Accent (#hex), Theme (light/dark), Footer. Validated in `lib/parse.ts`; bad values are ignored.
+- **Settings sheet** (not shown): `Setting | Value` rows: Title, Subtitle, Logo (https image), Logo link, Accent (#hex), Theme (light/dark), Footer, Hide SheetPress (yes). Dashboard Branding (`PUT /api/reports/:id/branding`, stored in `payload.branding`) overrides it and survives re-uploads. Validated in `lib/parse.ts`; bad values are ignored.
 - **Formulas** are fine: the parser reads the saved result, so write files with the results cached (Excel does; `tools/barcrawlerz-seo-audit/make_sheetpress_report.py` does via xlsxwriter).
 
 ## Report domains and link names

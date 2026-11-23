@@ -10,6 +10,8 @@ export const listReports = (userId: string) =>
     rowCount: reports.rowCount, updatedAt: reports.updatedAt,
     customDomain: reports.customDomain, domainVerified: reports.domainVerified,
     editable: sql<boolean>`coalesce(${reports.payload}->'data'->>'editable', 'false') = 'true'`,
+    branding: sql<Record<string, unknown> | null>`${reports.payload}->'branding'`,
+    workbookBrand: sql<Record<string, unknown> | null>`${reports.payload}->'data'->'brand'`,
     // public | password | legacy (the older browser-encrypted protection)
     accessMode: sql<string>`coalesce(${reports.payload}->'access'->>'mode', case when ${reports.payload}->'enc' is not null then 'legacy' else 'public' end)`,
   }).from(reports).where(eq(reports.userId, userId)).orderBy(desc(reports.updatedAt));

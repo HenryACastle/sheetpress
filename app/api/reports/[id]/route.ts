@@ -35,7 +35,8 @@ export async function PUT(req: Request, { params }: Ctx) {
       if (!formAccess) throw new UserError("This report used the old encrypted password. Enter a new password to keep it private, then Access can change it any time.");
       access = formAccess;
     }
-    built.payload = { data, ...(access ? { access } : {}) };
+    const branding = "data" in prev ? prev.branding : undefined; // dashboard branding survives re-uploads
+    built.payload = { data, ...(access ? { access } : {}), ...(branding ? { branding } : {}) };
     built.protectedByPassword = access?.mode === "password";
     const res = await db().update(reports).set({ ...built, updatedAt: new Date() }).where(ownedWhere(id, userId)).returning({ slug: reports.slug });
     if (!res.length) return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -61,7 +62,7 @@ export async function PATCH(req: Request, { params }: Ctx) {
     const sheets = validateSheets(body?.sheets);
     const data = { ...payload.data, sheets, generated: new Date().toISOString().slice(0, 10) };
     await db().update(reports).set({
-      payload: { data, ...(payload.access ? { access: payload.access } : {}) }, sheetCount: sheets.length, rowCount: sheets.reduce((n, s) => n + s.rows.length, 0), updatedAt: new Date(),
+      payload: { data, ...(payload.access ? { access: payload.access } : {}), ...(payload.branding ? { branding: payload.branding } : {}) }, sheetCount: sheets.length, rowCount: sheets.reduce((n, s) => n + s.rows.length, 0), updatedAt: new Date(),
     }).where(ownedWhere(id, userId));
     return NextResponse.json({ ok: true, generated: data.generated });
   } catch (e) {

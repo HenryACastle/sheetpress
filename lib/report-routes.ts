@@ -3,6 +3,7 @@ import { isOwnHost } from "./domains";
 import { renderHtml, type Payload } from "./report";
 import { SITE_URL } from "./site";
 import { publicView } from "./visibility";
+import { effectiveBrand, withBrand } from "./branding";
 
 // The public report endpoints, with the data lookup injected so the security-critical logic can be tested
 // without a database. app/r/[slug]/route.ts and .../unlock/route.ts are thin wrappers around these.
@@ -29,11 +30,11 @@ export async function handleView(req: Request, slug: string, lookup: Lookup): Pr
   const cookie = readCookie(req.headers.get("cookie"), cookieName(r.id));
   if (gate(payload.access, cookie, r.id) === "lock") {
     const next = isOwnHost(hostOf(req)) ? `/r/${slug}` : "/";
-    return html(lockPage({ title: r.title, slug, next, brand: payload.data.brand, siteUrl: SITE_URL }), { "cache-control": "private, no-store" });
+    return html(lockPage({ title: r.title, slug, next, brand: effectiveBrand(payload.data.brand, payload.branding), siteUrl: SITE_URL }), { "cache-control": "private, no-store" });
   }
   // A visitor only ever gets the public view: hidden sheets, columns and rows are removed here, on the server.
   const locked = payload.access?.mode === "password";
-  return html(renderHtml(r.title, { data: publicView(payload.data) }), {
+  return html(renderHtml(r.title, { data: withBrand(publicView(payload.data), payload.branding) }), {
     "cache-control": locked ? "private, no-store" : "public, max-age=0, s-maxage=30, stale-while-revalidate=300",
   });
 }
@@ -52,7 +53,7 @@ export async function handleUnlock(req: Request, slug: string, lookup: Lookup, d
 
   const ip = (req.headers.get("x-forwarded-for") ?? "").split(",")[0].trim() || "unknown";
   const key = `${ip}|${slug}`;
-  const page = (error: string, status: number) => html(lockPage({ title: r.title, slug, next, error, brand: payload.data.brand, siteUrl: SITE_URL }), { "cache-control": "private, no-store" }, status);
+  const page = (error: string, status: number) => html(lockPage({ title: r.title, slug, next, error, brand: effectiveBrand(payload.data.brand, payload.branding), siteUrl: SITE_URL }), { "cache-control": "private, no-store" }, status);
   if (!allowAttempt(key)) return page("Too many attempts. Please wait 10 minutes and try again.", 429);
   if (!pw || pw.length > 128 || !verifyPassword(pw, payload.access.hash)) {
     recordFail(key);

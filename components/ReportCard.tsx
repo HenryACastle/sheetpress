@@ -3,16 +3,18 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import AccessSettings from "./AccessSettings";
+import BrandingSettings from "./BrandingSettings";
 import LinkSettings from "./LinkSettings";
 import ReportForm from "./ReportForm";
 
-export type CardReport = { id: string; slug: string; title: string; subtitle: string; protectedByPassword: boolean; sheetCount: number; rowCount: number; updatedAt: string; editable?: boolean; customDomain?: string | null; domainVerified?: boolean; accessMode?: string };
+export type CardReport = { id: string; slug: string; title: string; subtitle: string; protectedByPassword: boolean; sheetCount: number; rowCount: number; updatedAt: string; editable?: boolean; customDomain?: string | null; domainVerified?: boolean; accessMode?: string; branding?: Record<string, unknown> | null; workbookBrand?: Record<string, unknown> | null };
 
 export default function ReportCard({ r, domainsEnabled = false }: { r: CardReport; domainsEnabled?: boolean }) {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [linkOpen, setLinkOpen] = useState(false);
   const [accessOpen, setAccessOpen] = useState(false);
+  const [brandOpen, setBrandOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const liveDomain = r.customDomain && r.domainVerified ? r.customDomain : null;
   const path = `/r/${r.slug}`;
@@ -43,6 +45,7 @@ export default function ReportCard({ r, domainsEnabled = false }: { r: CardRepor
           <button onClick={copy} className={btn}>{copied ? "Copied" : "Copy link"}</button>
           <button onClick={() => setEditing((v) => !v)} className={btn}>{editing ? "Cancel" : "Update"}</button>
           <button onClick={() => setAccessOpen((v) => !v)} aria-expanded={accessOpen} className={btn}>{accessOpen ? "Close access" : "Access"}</button>
+          {r.accessMode !== "legacy" && <button onClick={() => setBrandOpen((v) => !v)} aria-expanded={brandOpen} className={btn}>{brandOpen ? "Close branding" : "Branding"}</button>}
           <button onClick={() => setLinkOpen((v) => !v)} aria-expanded={linkOpen} className={btn}>{linkOpen ? "Close" : "Link & domain"}</button>
           <button onClick={remove} className={`${btn} text-red-600`}>Delete</button>
         </div>
@@ -50,6 +53,11 @@ export default function ReportCard({ r, domainsEnabled = false }: { r: CardRepor
       {accessOpen && (
         <div className="mt-4 border-t border-[var(--line)] pt-4">
           <AccessSettings id={r.id} mode={r.accessMode === "password" ? "password" : r.accessMode === "legacy" ? "legacy" : "public"} shareUrl={liveDomain ? `https://${liveDomain}` : typeof window !== "undefined" ? window.location.origin + path : path} />
+        </div>
+      )}
+      {brandOpen && (
+        <div className="mt-4 border-t border-[var(--line)] pt-4">
+          <BrandingSettings id={r.id} saved={r.branding ?? null} workbook={r.workbookBrand ?? null} title={r.title} />
         </div>
       )}
       {linkOpen && (

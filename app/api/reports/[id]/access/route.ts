@@ -31,7 +31,7 @@ export async function PUT(req: Request, { params }: Ctx) {
     } else {
       throw new UserError("Choose public or password.");
     }
-    await db().update(reports).set({ payload: { data: payload.data, access }, protectedByPassword: access.mode === "password", updatedAt: new Date() }).where(ownedWhere(id, userId));
+    await db().update(reports).set({ payload: { data: payload.data, access, ...(payload.branding ? { branding: payload.branding } : {}) }, protectedByPassword: access.mode === "password", updatedAt: new Date() }).where(ownedWhere(id, userId));
     return NextResponse.json({ mode: access.mode });
   } catch (e) {
     if (e instanceof UserError) return NextResponse.json({ error: e.message }, { status: 400 });

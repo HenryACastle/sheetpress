@@ -6,4 +6,7 @@ export const FREE = {
   maxColumns: 40,
   maxFileBytes: 2 * 1024 * 1024,
   maxCustomDomains: 1,
+  // May a report hide the "Built with SheetPress" line? On while SheetPress has no paid plan; set false when Pro
+  // launches and gate it on the plan (the API already checks this flag).
+  hideBadge: true,
 } as const;

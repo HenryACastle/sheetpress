@@ -1,6 +1,7 @@
 import { createHash, createHmac, randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import type { Access, Brand } from "./report";
 import { UserError } from "./report";
+import { validLogo } from "./branding";
 
 // ACCESS CONTROL FOR REPORTS. Public or password now; per-email later (another Access mode behind gate()).
 // The password is checked on the server. We store only a salted scrypt hash, never the password. A correct
@@ -98,7 +99,8 @@ const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&
 export function lockPage(opts: { title: string; slug: string; next: string; error?: string; brand?: Brand; siteUrl: string }): string {
   const accent = opts.brand?.accent && /^#[0-9a-f]{6}$/i.test(opts.brand.accent) ? opts.brand.accent : "#2a7f63";
   const dark = opts.brand?.theme === "dark";
-  const logo = opts.brand?.logo && /^https:\/\//.test(opts.brand.logo) ? `<img src="${esc(opts.brand.logo)}" alt="" style="display:block;max-height:40px;max-width:200px;margin:0 0 16px" referrerpolicy="no-referrer">` : "";
+  const lg = opts.brand?.logo;
+  const logo = lg && (/^https:\/\//.test(lg) || validLogo(lg)) ? `<img src="${esc(lg ?? "")}" alt="" style="display:block;max-height:40px;max-width:200px;margin:0 0 16px" referrerpolicy="no-referrer">` : "";
   const bg = dark ? "#16242b" : "#f0f2f5", card = dark ? "#1d2f38" : "#fff", ink = dark ? "#e7edf0" : "#2a4451", line = dark ? "#2f4652" : "#d6dbe3", mute = dark ? "#9db0b9" : "#566b75";
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>${esc(opts.title)}</title>
 <style>*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:${bg};color:${ink};font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
@@ -107,5 +109,5 @@ input{width:100%;margin:4px 0 12px;padding:10px;border:1px solid ${line};border-
 button{width:100%;padding:10px;border:0;border-radius:8px;background:${accent};color:#111;font:inherit;font-weight:700;cursor:pointer}.err{color:#d6453a;min-height:1.3em;margin:0 0 8px}
 a{color:${accent}}small{display:block;margin-top:14px;color:${mute};text-align:center}</style></head><body><main class="box">${logo}<h1>${esc(opts.title)}</h1><p>This report is private. Enter the password to view it.</p>
 <form method="post" action="/r/${esc(opts.slug)}/unlock"><input type="hidden" name="next" value="${esc(opts.next)}"><label>Password<input type="password" name="password" autocomplete="current-password" required autofocus></label>
-<div class="err" role="alert">${opts.error ? esc(opts.error) : ""}</div><button>Unlock</button></form><small>Built with <a href="${esc(opts.siteUrl)}" target="_blank" rel="noopener">SheetPress</a></small></main></body></html>`;
+<div class="err" role="alert">${opts.error ? esc(opts.error) : ""}</div><button>Unlock</button></form>${opts.brand?.hideBadge ? "" : `<small>Built with <a href="${esc(opts.siteUrl)}" target="_blank" rel="noopener">SheetPress</a></small>`}</main></body></html>`;
 }

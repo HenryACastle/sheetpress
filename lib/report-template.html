@@ -89,10 +89,13 @@ function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null
 function b64(s){var b=atob(s),a=new Uint8Array(b.length);for(var i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a}
 
 function makeFooter(brand){
-  var f=el('footer','foot'),i=el('div','in');
-  if(brand&&brand.footer){i.appendChild(el('div',null,brand.footer));i.lastChild.style.marginBottom='4px'}
-  i.appendChild(document.createTextNode('Built with '));
-  var a=el('a',null,'SheetPress');a.href='__SITE_URL__';a.target='_blank';a.rel='noopener';i.appendChild(a);
+  var f=el('footer','foot'),i=el('div','in'),any=false;
+  if(brand&&brand.footer){i.appendChild(el('div',null,brand.footer));any=true;if(!brand.hideBadge)i.lastChild.style.marginBottom='4px'}
+  if(!(brand&&brand.hideBadge)){
+    i.appendChild(document.createTextNode('Built with '));
+    var a=el('a',null,'SheetPress');a.href='__SITE_URL__';a.target='_blank';a.rel='noopener';i.appendChild(a);any=true;
+  }
+  if(!any)return document.createComment('');
   f.appendChild(i);return f;
 }
 
