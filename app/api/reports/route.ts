@@ -18,8 +18,9 @@ export async function POST(req: Request) {
     const form = await req.formData();
     const wanted = String(form.get("slug") ?? "").trim();
     const slug = wanted ? normalizeSlug(wanted) : null; // throws DomainError with a friendly message
-    const built = await buildFromForm(form, true);
-    if (!built) throw new UserError("Choose an .xlsx file.");
+    const built0 = await buildFromForm(form, true);
+    if (!built0) throw new UserError("Choose an .xlsx file.");
+    const built = { ...built0 }; delete built.access; // access lives inside the payload, not in a column
     let row: { slug: string };
     try {
       [row] = await db().insert(reports).values({ userId, slug: slug ?? makeSlug(built.title), ...built }).returning({ slug: reports.slug });

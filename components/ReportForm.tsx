@@ -4,8 +4,8 @@ import { useState } from "react";
 
 const input = "w-full rounded-lg border border-[var(--line)] bg-white px-3 py-2 text-sm";
 
-export default function ReportForm({ id, initialTitle = "", initialSubtitle = "", onDone }: {
-  id?: string; initialTitle?: string; initialSubtitle?: string; onDone?: () => void;
+export default function ReportForm({ id, initialTitle = "", initialSubtitle = "", legacy = false, onDone }: {
+  id?: string; initialTitle?: string; initialSubtitle?: string; legacy?: boolean; onDone?: () => void;
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
@@ -63,9 +63,13 @@ export default function ReportForm({ id, initialTitle = "", initialSubtitle = ""
         <label className="block text-sm font-medium">Excel file (.xlsx, up to 2 MB)
           <input name="file" type="file" required accept=".xlsx" className={`${input} mt-1`} />
         </label>
-        <label className="block text-sm font-medium">Password <span className="font-normal text-[var(--mute)]">(optional, leave blank for a public link)</span>
-          <input name="password" type="password" autoComplete="new-password" minLength={6} className={`${input} mt-1`} />
-        </label>
+        {(!id || legacy) ? (
+          <label className="block text-sm font-medium">{legacy ? "New password" : "Password"} <span className="font-normal text-[var(--mute)]">{legacy ? "(needed: this report used the old encrypted password)" : "(optional, leave blank for a public link)"}</span>
+            <input name="password" type="password" autoComplete="new-password" minLength={8} required={legacy} className={`${input} mt-1`} />
+          </label>
+        ) : (
+          <p className="self-end text-sm text-[var(--mute)]">Who can open the report is set under <b>Access</b>. Replacing the workbook keeps it as it is.</p>
+        )}
       </div>
       {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
       <button disabled={busy} className="rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-hover)] px-4 py-2 text-sm font-semibold text-white disabled:opacity-60">

@@ -4,7 +4,7 @@ import AuthLoadGuard from "./AuthLoadGuard";
 
 const points = [
   ["Upload an .xlsx, get a live page", "From spreadsheet to a shareable link in under a minute."],
-  ["Password protection is free", "Your data is encrypted. We never store the password."],
+  ["Password protection is free", "Lock any report with a password. We never store the password itself."],
   ["Update in place", "Upload a new workbook and the same link shows the new numbers."],
 ];
 

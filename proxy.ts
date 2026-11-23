@@ -55,7 +55,7 @@ function serveReportHost(req: NextRequest, slug: string | null) {
     url.pathname = `/r/${slug}`;
     return NextResponse.rewrite(url);
   }
-  if (pathname === `/r/${slug}` || pathname === "/robots.txt" || pathname === "/favicon.ico") return NextResponse.next();
+  if (pathname === `/r/${slug}` || pathname === `/r/${slug}/unlock` || pathname === "/robots.txt" || pathname === "/favicon.ico") return NextResponse.next();
   return new NextResponse("Not found", { status: 404 });
 }
 

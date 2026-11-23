@@ -4,7 +4,7 @@ import { db } from "@/db";
 import { reports } from "@/db/schema";
 import { buildFromForm } from "@/lib/form";
 import { validateSheets } from "@/lib/lists";
-import { UserError, type Payload } from "@/lib/report";
+import { UserError, type Access, type Payload } from "@/lib/report";
 import { getOwned, ownedWhere } from "@/lib/reports";
 
 type Ctx = { params: Promise<{ id: string }> };
@@ -17,14 +17,26 @@ export async function PUT(req: Request, { params }: Ctx) {
   const { id } = await params;
   if (!UUID.test(id)) return NextResponse.json({ error: "Not found" }, { status: 404 });
   try {
-    const built = await buildFromForm(await req.formData(), true);
-    if (!built) throw new UserError("Choose an .xlsx file.");
-    // An upload into a list keeps it a list: still editable on the dashboard (never when password protected).
+    const built0 = await buildFromForm(await req.formData(), true);
+    if (!built0) throw new UserError("Choose an .xlsx file.");
+    const { access: formAccess, ...built } = built0; // access lives inside the payload, not in a column
     const before = await getOwned(id, userId);
-    const prev = before?.payload as Payload | undefined;
-    if (prev && "data" in prev && prev.data.editable && "data" in built.payload) {
-      built.payload = { data: { ...built.payload.data, editable: true, ...(prev.data.template ? { template: prev.data.template } : {}) } };
+    if (!before) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    const prev = before.payload as Payload;
+    if (!("data" in built.payload)) throw new UserError("Something went wrong.");
+    let data = built.payload.data;
+    // An upload into a list keeps it a list: still editable on the dashboard.
+    if ("data" in prev && prev.data.editable) data = { ...data, editable: true, ...(prev.data.template ? { template: prev.data.template } : {}) };
+    // Replacing the workbook never changes who can open the report: the Access panel owns that.
+    let access: Access | undefined;
+    if ("data" in prev) access = prev.access;
+    else {
+      // Old browser-encrypted protection cannot be carried over (we cannot read it), so a new choice is needed.
+      if (!formAccess) throw new UserError("This report used the old encrypted password. Enter a new password to keep it private, then Access can change it any time.");
+      access = formAccess;
     }
+    built.payload = { data, ...(access ? { access } : {}) };
+    built.protectedByPassword = access?.mode === "password";
     const res = await db().update(reports).set({ ...built, updatedAt: new Date() }).where(ownedWhere(id, userId)).returning({ slug: reports.slug });
     if (!res.length) return NextResponse.json({ error: "Not found" }, { status: 404 });
     return NextResponse.json({ slug: res[0].slug });
@@ -49,7 +61,7 @@ export async function PATCH(req: Request, { params }: Ctx) {
     const sheets = validateSheets(body?.sheets);
     const data = { ...payload.data, sheets, generated: new Date().toISOString().slice(0, 10) };
     await db().update(reports).set({
-      payload: { data }, sheetCount: sheets.length, rowCount: sheets.reduce((n, s) => n + s.rows.length, 0), updatedAt: new Date(),
+      payload: { data, ...(payload.access ? { access: payload.access } : {}) }, sheetCount: sheets.length, rowCount: sheets.reduce((n, s) => n + s.rows.length, 0), updatedAt: new Date(),
     }).where(ownedWhere(id, userId));
     return NextResponse.json({ ok: true, generated: data.generated });
   } catch (e) {

@@ -11,7 +11,7 @@
     "db:push": "drizzle-kit push",
     "seed:demo": "tsx scripts/seed-demo.ts",
     "examples": "tsx scripts/make-example-xlsx.ts",
-    "test": "tsx scripts/test-visibility.ts",
+    "test": "tsx scripts/test-visibility.ts && tsx scripts/test-access.ts && tsx scripts/test-access-routes.ts",
     "test:domains": "tsx scripts/test-domains.ts"
   },
   "dependencies": {

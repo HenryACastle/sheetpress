@@ -14,7 +14,7 @@ const useCases: UseCase[] = [
   { title: "Reports", body: "Turn a status sheet into a report people actually read. Status columns become colored chips, a Summary sheet becomes headline tiles, percent columns become progress bars.", examples: "Project status, client updates, weekly KPI roll-ups" },
   { title: "Websites", body: "Publish a searchable, sortable table as a page with its own link. Add a password when it should not be public.", examples: "Directories, price lists, menus, catalogs, event lineups" },
   { title: "Dashboards", body: "One link, always current. Re-upload the workbook and everyone sees the new numbers without a new link.", examples: "Team trackers, inventory, pipelines, OKRs" },
-  { title: "Client portals", body: "Put a password on any report and send the link. The data is encrypted, so the page holds nothing readable without it.", examples: "Client deliverables, investor updates, internal-only pages" },
+  { title: "Client portals", body: "Put a password on any report and send the link. Visitors see nothing until they enter it.", examples: "Client deliverables, investor updates, internal-only pages" },
   { title: "Schedules and rosters", body: "Shift plans, class timetables and contact lists, searchable on a phone without anyone opening Excel.", examples: "Staff rosters, class schedules, on-call rotas" },
   { title: "Applications", body: "Collect entries with forms, edit rows in the browser and route approvals, with your workbook as the database.", examples: "Intake forms, simple internal tools, approvals", soon: true },
 ];
@@ -27,7 +27,7 @@ const steps = [
 
 const features: [string, string, boolean?][] = [
   ["Excel first", "Start from the .xlsx you already have. No Google account, no sharing settings, no copy and paste."],
-  ["Password protection on the free plan", "Many tools lock this behind their top tier. Here the data is encrypted and the password is never stored."],
+  ["Password protection on the free plan", "Many tools lock this behind their top tier. Here it is included, and we never keep the password itself."],
   ["Reports out of the box", "Status chips, KPI tiles and progress bars appear from your columns. There is no layout to design."],
   ["Search, sort and filter", "Every table is searchable and sortable, and status breakdowns filter the table in one click. Works on a phone."],
   ["Update in place", "Replace the workbook and keep the link, so nothing you already sent goes stale."],
@@ -38,7 +38,7 @@ const features: [string, string, boolean?][] = [
 
 const faqs: [string, string][] = [
   ["What can I upload?", `An .xlsx file up to 2 MB. The free plan allows up to ${FREE.maxSheets} sheets per workbook and ${FREE.maxRowsPerSheet.toLocaleString()} rows per sheet. Each sheet becomes a tab.`],
-  ["Who can see my report?", "Anyone with the link can view a public report, so only publish what you are happy to share. If you add a password, the data is encrypted and the page contains nothing readable without it. Reports are marked noindex, so search engines are asked to skip them."],
+  ["Who can see my report?", "Anyone with the link can view a public report, so only publish what you are happy to share. If you add a password, nothing is shown until it is entered, and we store only a hash of it, never the password. Your data is stored on our servers, so SheetPress can read it. Reports are marked noindex, so search engines are asked to skip them."],
   ["Is it free?", `Yes. The free plan includes ${FREE.maxReports} reports and needs no credit card. Paid plans for custom domains and more capacity are coming.`],
   ["How do I update a report?", "Open your dashboard, choose Update and upload the new workbook. The link stays the same."],
   ["Does it work with Google Sheets?", "Not yet. Download your sheet as .xlsx and upload it. Live Google Sheets sync is planned."],

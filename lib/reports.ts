@@ -10,6 +10,8 @@ export const listReports = (userId: string) =>
     rowCount: reports.rowCount, updatedAt: reports.updatedAt,
     customDomain: reports.customDomain, domainVerified: reports.domainVerified,
     editable: sql<boolean>`coalesce(${reports.payload}->'data'->>'editable', 'false') = 'true'`,
+    // public | password | legacy (the older browser-encrypted protection)
+    accessMode: sql<string>`coalesce(${reports.payload}->'access'->>'mode', case when ${reports.payload}->'enc' is not null then 'legacy' else 'public' end)`,
   }).from(reports).where(eq(reports.userId, userId)).orderBy(desc(reports.updatedAt));
 
 export async function countReports(userId: string) {
@@ -20,7 +22,7 @@ export async function countReports(userId: string) {
 export const ownedWhere = (id: string, userId: string) => and(eq(reports.id, id), eq(reports.userId, userId));
 
 export async function getPublicBySlug(slug: string) {
-  const [r] = await db().select({ title: reports.title, payload: reports.payload }).from(reports).where(eq(reports.slug, slug)).limit(1);
+  const [r] = await db().select({ id: reports.id, title: reports.title, payload: reports.payload }).from(reports).where(eq(reports.slug, slug)).limit(1);
   return r ?? null;
 }
 

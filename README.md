@@ -6,8 +6,8 @@ Stack: Next.js 16 + Clerk v7 (owner login) + Neon Postgres/Drizzle. Reports rend
 
 ## How it works
 - `/` marketing, `/sign-in` `/sign-up` Clerk, `/app` dashboard (publish, update, delete).
-- `POST /api/reports` parses the workbook server-side (`lib/parse.ts`), stores the data as JSON in Neon. With a password, only an AES-GCM encrypted blob is stored (the password is never stored; updating a protected report means re-entering it).
-- `GET /r/<slug>` serves the report HTML. Public by link, or locked behind the password.
+- `POST /api/reports` parses the workbook server-side (`lib/parse.ts`), stores the data as JSON in Neon. Access is separate from the workbook (see Access below); the password is never stored, only a hash.
+- `GET /r/<slug>` serves the report HTML. Public by link, or a server-rendered password page until the visitor unlocks it.
 - Free limits live in `lib/plans.ts` (3 reports, 1000 rows/sheet, 2 MB).
 
 ## Go-live checklist (Vercel)
@@ -49,5 +49,15 @@ Two ways to put a report on its own address.
 - Dashboard > **New shopping list** creates an editable list (no Excel needed). `/app/lists/<id>` is the editor: quick add, edit cells, tick Bought, per-row **On site**, per-column **public/private**, totals, Save (PATCH `/api/reports/:id`), **Download Excel** (`GET /api/reports/:id/xlsx`, everything including private data) and **Upload Excel** (PUT, replaces the list, stays editable).
 - `public/examples/shopping-list.xlsx` is the Excel template (built by `tools/sheetpress/make_shopping_list_template.py` in the vault): Show column, `Notes [private]`, a `Help (private)` sheet, status/Show dropdowns, a formula column.
 - **Show codes** (`lib/visibility.ts`, enforced server-side in `/r/[slug]`; hidden data is not in the page source): a `Show`/`Public`/`Visible`/`On site` column (yes/no per row, blank = shown), `[private]`/`[hide]` (or round brackets) on a column header, `(private)`/`(hide)` on a sheet name (Excel forbids `[ ]` in sheet names). `npm test` checks them.
-- Editable lists live in the existing `reports.payload` (`data.editable`), so there is no schema change. Not password-protectable (the server cannot re-encrypt without the password); password uploads keep only the public view.
+- Editable lists live in the existing `reports.payload` (`data.editable`), so there is no schema change. Lists can now be password protected too.
 - Settings sheet also takes `Currency` (shown before the estimated total).
+
+
+## Access (who can open a report)
+Separate from the workbook. Dashboard card > **Access**: Public or Password now; per-email access later (another mode behind `gate()` in `lib/access.ts`; it will need an allow-list/sign-in-link table).
+- Stored beside the data in `reports.payload.access` (`{mode:"public"}` or `{mode:"password", hash, v, setAt}`); `protectedByPassword` is kept in step. No schema change.
+- Password: salted scrypt hash, never the password. Min 8 characters. A correct password sets a signed HttpOnly cookie (7 days) tied to the hash, so changing the password signs everyone out. `PUT /api/reports/:id/access`.
+- `/r/<slug>` sends no report data until `gate()` says open; wrong passwords go to `POST /r/<slug>/unlock` (400 ms delay, 8 tries per 10 minutes per IP per instance; not shared across servers, so a shared limit needs a store later).
+- Needs `ACCESS_COOKIE_SECRET` (falls back to `CLERK_SECRET_KEY`) to sign cookies.
+- Replacing the workbook keeps the access setting. Reports protected with the older browser encryption keep working; replacing one asks for a new password (we cannot read the old data).
+- Tests: `npm test` (`scripts/test-access.ts`: hashing, cookies, expiry, tampering, password change, brute-force brake, page escaping).

@@ -2,15 +2,17 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import AccessSettings from "./AccessSettings";
 import LinkSettings from "./LinkSettings";
 import ReportForm from "./ReportForm";
 
-export type CardReport = { id: string; slug: string; title: string; subtitle: string; protectedByPassword: boolean; sheetCount: number; rowCount: number; updatedAt: string; editable?: boolean; customDomain?: string | null; domainVerified?: boolean };
+export type CardReport = { id: string; slug: string; title: string; subtitle: string; protectedByPassword: boolean; sheetCount: number; rowCount: number; updatedAt: string; editable?: boolean; customDomain?: string | null; domainVerified?: boolean; accessMode?: string };
 
 export default function ReportCard({ r, domainsEnabled = false }: { r: CardReport; domainsEnabled?: boolean }) {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [linkOpen, setLinkOpen] = useState(false);
+  const [accessOpen, setAccessOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const liveDomain = r.customDomain && r.domainVerified ? r.customDomain : null;
   const path = `/r/${r.slug}`;
@@ -30,7 +32,7 @@ export default function ReportCard({ r, domainsEnabled = false }: { r: CardRepor
         <div className="min-w-0">
           <h3 className="truncate font-semibold">{r.title}</h3>
           <p className="text-sm text-[var(--mute)]">
-            {r.editable ? "Editable list · " : ""}{r.protectedByPassword ? "Password protected" : "Public link"} · {r.sheetCount} sheets · {r.rowCount} rows · updated {new Date(r.updatedAt).toLocaleDateString()}
+            {r.editable ? "Editable list · " : ""}{r.accessMode === "legacy" ? "Password protected (old style)" : r.protectedByPassword ? "Password protected" : "Public link"} · {r.sheetCount} sheets · {r.rowCount} rows · updated {new Date(r.updatedAt).toLocaleDateString()}
           </p>
           {liveDomain && <p className="text-sm"><a href={`https://${liveDomain}`} target="_blank" rel="noopener noreferrer" className="text-[var(--accent)] underline">{liveDomain}</a></p>}
           {r.customDomain && !r.domainVerified && <p className="text-xs text-[var(--warn)]">{r.customDomain} is waiting for DNS</p>}
@@ -40,10 +42,16 @@ export default function ReportCard({ r, domainsEnabled = false }: { r: CardRepor
           <a href={path} target="_blank" rel="noopener noreferrer" className={btn}>Open</a>
           <button onClick={copy} className={btn}>{copied ? "Copied" : "Copy link"}</button>
           <button onClick={() => setEditing((v) => !v)} className={btn}>{editing ? "Cancel" : "Update"}</button>
+          <button onClick={() => setAccessOpen((v) => !v)} aria-expanded={accessOpen} className={btn}>{accessOpen ? "Close access" : "Access"}</button>
           <button onClick={() => setLinkOpen((v) => !v)} aria-expanded={linkOpen} className={btn}>{linkOpen ? "Close" : "Link & domain"}</button>
           <button onClick={remove} className={`${btn} text-red-600`}>Delete</button>
         </div>
       </div>
+      {accessOpen && (
+        <div className="mt-4 border-t border-[var(--line)] pt-4">
+          <AccessSettings id={r.id} mode={r.accessMode === "password" ? "password" : r.accessMode === "legacy" ? "legacy" : "public"} shareUrl={liveDomain ? `https://${liveDomain}` : typeof window !== "undefined" ? window.location.origin + path : path} />
+        </div>
+      )}
       {linkOpen && (
         <div className="mt-4 border-t border-[var(--line)] pt-4">
           <LinkSettings id={r.id} slug={r.slug} customDomain={r.customDomain ?? null} domainVerified={!!r.domainVerified} enabled={domainsEnabled} host={typeof window !== "undefined" ? window.location.host : ""} />
@@ -51,7 +59,7 @@ export default function ReportCard({ r, domainsEnabled = false }: { r: CardRepor
       )}
       {editing && (
         <div className="mt-4 border-t border-[var(--line)] pt-4">
-          <ReportForm id={r.id} initialTitle={r.title} initialSubtitle={r.subtitle} onDone={() => setEditing(false)} />
+          <ReportForm id={r.id} initialTitle={r.title} initialSubtitle={r.subtitle} legacy={r.accessMode === "legacy"} onDone={() => setEditing(false)} />
         </div>
       )}
     </li>

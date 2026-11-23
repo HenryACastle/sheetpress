@@ -24,7 +24,7 @@ export default function Privacy() {
 
       <h2>Public and password-protected reports</h2>
       <p>A public report can be opened by anyone who has its link. Reports ask search engines not to index them, but a link can still be shared or found, so only publish what you are comfortable sharing.</p>
-      <p>If you add a password, your report data is encrypted using a key derived from that password, and we cannot read it or recover the password. If you forget it, upload the workbook again. The title and subtitle of a report are not encrypted.</p>
+      <p>If you add a password, nobody sees the report until they enter it: the page sends no report data before then. We store only a salted hash of the password, so we cannot show it or recover it. If you forget it, set a new one under Access. Your report data itself is stored on our servers and is readable by SheetPress; it is not encrypted with your password. Reports published before 23 November 2026 with an older password use browser encryption, which we cannot read, until you move them to the new setting.</p>
 
       <h2>Who processes your data</h2>
       <ul>

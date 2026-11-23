@@ -8,7 +8,11 @@ export type Brand = { logo?: string; link?: string; accent?: string; theme?: "li
 // editable: this report is managed from the SheetPress dashboard (add, edit, check off) as well as by .xlsx upload.
 export type ReportData = { title: string; subtitle: string; generated: string; sheets: Sheet[]; brand?: Brand; editable?: boolean; template?: "shopping" };
 export type EncBlob = { salt: string; iv: string; ct: string; iter: number };
-export type Payload = { data: ReportData } | { enc: EncBlob };
+// Who may open a report. Stored beside the data (never inside the public page). Public is the default.
+// Per-email access is planned: it will be another mode here ({ mode: "emails", ... }) behind the same gate.
+export type Access = { mode: "public" } | { mode: "password"; hash: string; v: number; setAt: string };
+// { enc } is the old browser-encrypted protection, kept readable for reports published before server-side access.
+export type Payload = { data: ReportData; access?: Access } | { enc: EncBlob };
 
 export class UserError extends Error {}
 
