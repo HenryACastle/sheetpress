@@ -3,12 +3,12 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 type DnsRecord = { type: "A" | "CNAME" | "TXT"; name: string; value: string; purpose: string };
-type Status = { domain: string; state: "needs_txt" | "needs_dns" | "live"; records: DnsRecord[]; isApex: boolean; message: string };
+type Status = { domain: string; state: "needs_txt" | "needs_dns" | "securing" | "live"; records: DnsRecord[]; isApex: boolean; message: string };
 
 const field = "w-full rounded-lg border border-[var(--line)] bg-white px-3 py-2 text-sm";
 const btn = "rounded-lg border border-[var(--line)] bg-white px-3 py-1.5 text-sm hover:bg-[var(--bg)] disabled:opacity-60";
 const primary = "rounded-lg bg-[var(--accent)] px-3 py-1.5 text-sm font-semibold text-white hover:bg-[var(--accent-hover)] disabled:opacity-60";
-const POLL_MS = 15000, POLL_MAX = 60; // check every 15s for 15 minutes, then wait for a manual "Check now"
+const POLL_MS = 15000, POLL_MAX = 60, POLL_MAX_SECURING = 240; // every 15s for 15 min; while only the HTTPS certificate is pending, keep going for an hour
 
 function Copy({ text, label }: { text: string; label: string }) {
   const [done, setDone] = useState(false);
@@ -41,12 +41,13 @@ export default function LinkSettings({ id, slug, customDomain, domainVerified, e
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const polls = useRef(0);
+  const stateRef = useRef<Status["state"] | undefined>(undefined);
 
   const refresh = useCallback(async () => {
     const res = await fetch(`/api/reports/${id}/domain`);
     const j = await res.json().catch(() => ({}));
     if (!res.ok) { setErr(j.error ?? "Could not check the domain."); return; }
-    setErr(""); setStatus(j.status);
+    setErr(""); setStatus(j.status); stateRef.current = j.status?.state;
     if (j.status?.state === "live") router.refresh();
   }, [id, router]);
 
@@ -56,7 +57,7 @@ export default function LinkSettings({ id, slug, customDomain, domainVerified, e
     if (!enabled || !pending) return;
     polls.current = 0;
     const first = setTimeout(refresh, 0);
-    const t = setInterval(() => { if (++polls.current > POLL_MAX) { clearInterval(t); return; } refresh(); }, POLL_MS);
+    const t = setInterval(() => { if (++polls.current > (stateRef.current === "securing" ? POLL_MAX_SECURING : POLL_MAX)) { clearInterval(t); return; } refresh(); }, POLL_MS);
     return () => { clearTimeout(first); clearInterval(t); };
   }, [enabled, pending, refresh]);
 
@@ -104,6 +105,7 @@ export default function LinkSettings({ id, slug, customDomain, domainVerified, e
               <input aria-label="Domain" required value={domain} onChange={(e) => setDomain(e.target.value)} placeholder="reports.yourcompany.com" className={`${field} max-w-[20rem]`} autoCapitalize="none" autoCorrect="off" spellCheck={false} />
               <button disabled={busy} className={primary}>{busy ? "Connecting..." : "Connect domain"}</button>
             </div>
+            <p className="mt-2 text-xs text-[var(--mute)]">Setup has two waits: your DNS record (minutes), then a free security certificate (a few minutes up to an hour). We tell you at each step and show Live only when the secure address really opens.</p>
           </form>
         ) : (
           <div className="mt-2 space-y-3">
@@ -111,7 +113,7 @@ export default function LinkSettings({ id, slug, customDomain, domainVerified, e
               <span className="font-mono">{attached}</span>
               {status?.state === "live"
                 ? <span className="rounded-full bg-[var(--okbg)] px-2 py-0.5 text-xs font-semibold text-[var(--ok)]">Live</span>
-                : <span className="rounded-full bg-[var(--warnbg)] px-2 py-0.5 text-xs font-semibold text-[var(--warn)]">{status?.state === "needs_txt" ? "Needs verification" : "Waiting for DNS"}</span>}
+                : <span className="rounded-full bg-[var(--warnbg)] px-2 py-0.5 text-xs font-semibold text-[var(--warn)]">{status?.state === "needs_txt" ? "Needs verification" : status?.state === "securing" ? "Securing (HTTPS)" : "Waiting for DNS"}</span>}
             </div>
             {status?.state === "live" ? (
               <p><a href={`https://${attached}`} target="_blank" rel="noopener noreferrer" className="text-[var(--accent)] underline">Open https://{attached}</a></p>
@@ -134,11 +136,17 @@ export default function LinkSettings({ id, slug, customDomain, domainVerified, e
                     </table>
                   </div>
                 )}
-                <ul className="list-disc space-y-1 pl-5 text-xs text-[var(--mute)]">
+                {status?.state === "securing" && (
+                  <p role="status" className="rounded-lg border border-[var(--line)] bg-[var(--bg)] p-3 text-xs text-[var(--mute)]">
+                    <b>Nothing is wrong.</b> Your DNS record is correct. The last step is the free security certificate, which our hosting provider issues on its own. Until it is ready, browsers show &ldquo;This site can&rsquo;t be reached&rdquo; or a connection error for <span className="font-mono">{attached}</span>. Please do not share the address yet. If it is still not live after 2 hours, press Remove domain and connect it again.
+                  </p>
+                )}
+                {status?.state !== "securing" && <ul className="list-disc space-y-1 pl-5 text-xs text-[var(--mute)]">
                   <li>Add these at the company where you manage your domain&rsquo;s DNS (GoDaddy, Namecheap, Cloudflare, Squarespace, and so on).</li>
                   <li>On Cloudflare, set the record to <b>DNS only</b> (grey cloud), not proxied.</li>
                   <li>It usually works within minutes. We check every 15 seconds while this panel is open.</li>
-                </ul>
+                  <li>When your DNS is right there is one more wait, for the security (HTTPS) certificate. It can take a few minutes up to an hour, and we show you when it is ready.</li>
+                </ul>}
               </>
             )}
             <div className="flex flex-wrap gap-2">

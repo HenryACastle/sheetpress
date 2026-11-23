@@ -3,11 +3,12 @@ import { config } from "dotenv"; config({ path: [".env.local", ".env"], quiet: t
 import { and, eq, like } from "drizzle-orm";
 import { db } from "../db";
 import { reports } from "../db/schema";
-import { deriveStatus, dnsHostName, isOwnHost, normalizeDomain, normalizeSlug, DomainError } from "../lib/domains";
+import { applyHttps, deriveStatus, dnsHostName, isOwnHost, nextVerified, normalizeDomain, normalizeSlug, DomainError } from "../lib/domains";
 import { vercelApi, type FetchLike } from "../lib/vercel-domains";
 import { checkDomain, connectDomain, disconnectDomain, renameSlug, slugForHost } from "../lib/domain-service";
 
 let pass = 0, fail = 0;
+const UP = async () => true;   // pretend the HTTPS address already answers
 const ok = (name: string, cond: boolean, extra = "") => { cond ? pass++ : fail++; console.log(`${cond ? "PASS" : "FAIL"}  ${name}${cond ? "" : "  " + extra}`); };
 const throws = async (name: string, fn: () => unknown, match: RegExp) => {
   try { await fn(); ok(name, false, "did not throw"); } catch (e) { ok(name, e instanceof DomainError && match.test(e.message), String((e as Error).message)); }
@@ -94,6 +95,17 @@ async function main() {
   await fv.api.removeDomain("reports.acme.com"); await fv.api.removeDomain("never-added.com");
   ok("client: remove is idempotent (404 ok)", !fv.domains.has("reports.acme.com"));
 
+  // ---------- HTTPS readiness: "configured at Vercel" is not "reachable" ----------
+  const liveStatus = deriveStatus("reports.acme.com", { name: "reports.acme.com", apexName: "acme.com", verified: true }, { ...cfgBad, misconfigured: false, configuredBy: "CNAME" });
+  ok("https: probe ok keeps live", applyHttps(liveStatus, true).state === "live");
+  const sec = applyHttps(liveStatus, false);
+  ok("https: probe fails => securing, with the wait explained", sec.state === "securing" && /certificate/.test(sec.message) && /up to an hour/.test(sec.message));
+  ok("https: only a live status is downgraded", applyHttps(tx, false).state === "needs_txt" && applyHttps(sub, false).state === "needs_dns");
+  ok("verified flag: live => true", nextVerified("live", false) === true);
+  ok("verified flag: securing never switches a serving domain off", nextVerified("securing", true) === true);
+  ok("verified flag: securing never switches an unfinished one on", nextVerified("securing", false) === false);
+  ok("verified flag: DNS lost => off", nextVerified("needs_dns", true) === false && nextVerified("needs_txt", true) === false);
+
   // ---------- service against the real database ----------
   const A = "e2e_dom_userA", B = "e2e_dom_userB";
   const clean = async () => { await db().delete(reports).where(like(reports.userId, "e2e_dom_%")); };
@@ -102,20 +114,20 @@ async function main() {
   const a1 = await mk(A, "e2e-dom-a1"), a2 = await mk(A, "e2e-dom-a2"), b1 = await mk(B, "e2e-dom-b1");
   const v = fakeVercel();
   try {
-    await throws("service: other user's report -> not found", () => connectDomain(B, a1.id, "reports.acme.com", v.api), /not found/i);
-    const s1 = await connectDomain(A, a1.id, "https://Reports.Acme.com/", v.api);
+    await throws("service: other user's report -> not found", () => connectDomain(B, a1.id, "reports.acme.com", v.api, UP), /not found/i);
+    const s1 = await connectDomain(A, a1.id, "https://Reports.Acme.com/", v.api, UP);
     ok("connect: needs_dns + CNAME instruction", s1.state === "needs_dns" && s1.records[0].type === "CNAME" && s1.records[0].name === "reports");
     let row = (await db().select().from(reports).where(eq(reports.id, a1.id)))[0];
     ok("connect: saved normalized, NOT live yet", row.customDomain === "reports.acme.com" && row.domainVerified === false && !!row.domainClaimedAt);
     ok("proxy lookup ignores unverified domain", (await slugForHost("reports.acme.com")) === null);
 
-    await throws("limit: free plan = 1 domain per account", () => connectDomain(A, a2.id, "other.acme.com", v.api), /free plan includes 1/);
-    await throws("conflict: same domain, other user, fresh claim", () => connectDomain(B, b1.id, "reports.acme.com", v.api), /already connected to another/);
+    await throws("limit: free plan = 1 domain per account", () => connectDomain(A, a2.id, "other.acme.com", v.api, UP), /free plan includes 1/);
+    await throws("conflict: same domain, other user, fresh claim", () => connectDomain(B, b1.id, "reports.acme.com", v.api, UP), /already connected to another/);
 
-    const s2 = await checkDomain(A, a1.id, v.api);
+    const s2 = await checkDomain(A, a1.id, v.api, UP);
     ok("check: still waiting before DNS exists", s2?.state === "needs_dns");
     v.knobs.dnsOk.add("reports.acme.com");
-    const s3 = await checkDomain(A, a1.id, v.api);
+    const s3 = await checkDomain(A, a1.id, v.api, UP);
     row = (await db().select().from(reports).where(eq(reports.id, a1.id)))[0];
     ok("check: live once DNS is right, flag persisted", s3?.state === "live" && row.domainVerified === true);
     ok("proxy lookup serves the verified domain", (await slugForHost("reports.acme.com")) === "e2e-dom-a1");
@@ -126,27 +138,39 @@ async function main() {
     row = (await db().select().from(reports).where(eq(reports.id, a1.id)))[0];
     ok("disconnect: cleared in DB and removed from Vercel", row.customDomain === null && row.domainVerified === false && !v.domains.has("reports.acme.com"));
     ok("disconnect: stops serving", (await slugForHost("reports.acme.com")) === null);
-    const t1 = await connectDomain(A, a1.id, "tx.acme.com", v.api);
+    const t1 = await connectDomain(A, a1.id, "tx.acme.com", v.api, UP);
     ok("txt path: TXT first, nothing live", t1.state === "needs_txt" && t1.records[0].type === "TXT" && t1.records[0].value === "vc-domain-verify=abc123");
     v.knobs.txtOk.add("tx.acme.com"); v.knobs.dnsOk.add("tx.acme.com");
-    ok("txt path: verifies then goes live on check", (await checkDomain(A, a1.id, v.api))?.state === "live");
+    ok("txt path: verifies then goes live on check", (await checkDomain(A, a1.id, v.api, UP))?.state === "live");
     await disconnectDomain(A, a1.id, v.api);
 
     // stale unfinished claim can be taken over by the real owner
-    await connectDomain(A, a1.id, "stale.acme.com", v.api);
+    await connectDomain(A, a1.id, "stale.acme.com", v.api, UP);
     await db().update(reports).set({ domainClaimedAt: new Date(Date.now() - 25 * 3600 * 1000) }).where(eq(reports.id, a1.id));
-    const take = await connectDomain(B, b1.id, "stale.acme.com", v.api);
+    const take = await connectDomain(B, b1.id, "stale.acme.com", v.api, UP);
     const [ra, rb] = [(await db().select().from(reports).where(eq(reports.id, a1.id)))[0], (await db().select().from(reports).where(eq(reports.id, b1.id)))[0]];
     ok("takeover: >24h unfinished claim is released to new owner", ra.customDomain === null && rb.customDomain === "stale.acme.com" && take.state === "needs_dns");
     await disconnectDomain(B, b1.id, v.api);
 
     // a VERIFIED claim is never taken over
-    await connectDomain(A, a1.id, "solid.acme.com", v.api); v.knobs.dnsOk.add("solid.acme.com"); await checkDomain(A, a1.id, v.api);
+    await connectDomain(A, a1.id, "solid.acme.com", v.api, UP); v.knobs.dnsOk.add("solid.acme.com"); await checkDomain(A, a1.id, v.api, UP);
     await db().update(reports).set({ domainClaimedAt: new Date(Date.now() - 99 * 3600 * 1000) }).where(eq(reports.id, a1.id));
-    await throws("takeover: verified claims are protected", () => connectDomain(B, b1.id, "solid.acme.com", v.api), /already connected to another/);
-    await throws("service: Vercel conflict surfaces as friendly error", () => connectDomain(B, b1.id, "taken.example.com", v.api), /already in use/);
+    await throws("takeover: verified claims are protected", () => connectDomain(B, b1.id, "solid.acme.com", v.api, UP), /already connected to another/);
+    await throws("service: Vercel conflict surfaces as friendly error", () => connectDomain(B, b1.id, "taken.example.com", v.api, UP), /already in use/);
     row = (await db().select().from(reports).where(eq(reports.id, b1.id)))[0];
     ok("failed add leaves no claim behind", row.customDomain === null);
+    await disconnectDomain(A, a1.id, v.api);
+
+    // HTTPS readiness: DNS right, certificate not issued yet
+    const DOWN = async () => false;
+    v.knobs.dnsOk.add("slow.acme.com");
+    const sl1 = await connectDomain(A, a1.id, "slow.acme.com", v.api, DOWN);
+    ok("https: no certificate yet => securing, not live", sl1.state === "securing");
+    ok("https: a securing domain is not served yet", (await slugForHost("slow.acme.com")) === null);
+    const sl2 = await checkDomain(A, a1.id, v.api, UP);
+    ok("https: certificate arrives => live and served", sl2?.state === "live" && (await slugForHost("slow.acme.com")) !== null);
+    const sl3 = await checkDomain(A, a1.id, v.api, DOWN);
+    ok("https: a failed probe later reports securing but keeps serving", sl3?.state === "securing" && (await slugForHost("slow.acme.com")) !== null);
     await disconnectDomain(A, a1.id, v.api);
 
     // slugs

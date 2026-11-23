@@ -1,7 +1,7 @@
 import { and, eq, isNotNull, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { reports } from "@/db/schema";
-import { canAddDomain, deriveStatus, DomainError, normalizeDomain, normalizeSlug, type DomainStatus } from "./domains";
+import { applyHttps, canAddDomain, deriveStatus, DomainError, nextVerified, normalizeDomain, normalizeSlug, type DomainStatus } from "./domains";
 import { vercelApi, vercelEnv, type VercelApi } from "./vercel-domains";
 
 const CLAIM_TTL_MS = 24 * 60 * 60 * 1000;
@@ -18,23 +18,33 @@ async function owned(userId: string, id: string) {
   return r;
 }
 
-async function statusFor(v: VercelApi, domain: string): Promise<DomainStatus> {
+export type HttpsProbe = (domain: string) => Promise<boolean>;
+// True once the secure address completes a handshake and answers with ANY status (even a 404: until the domain is
+// marked live our own app answers 404 for it). A missing certificate, a timeout or a closed connection is false.
+// The target is a domain Vercel already reports as pointed at Vercel, and only a yes/no leaves this function.
+export const probeHttps: HttpsProbe = async (domain) => {
+  try { await fetch(`https://${domain}/`, { method: "HEAD", redirect: "manual", cache: "no-store", signal: AbortSignal.timeout(6000) }); return true; }
+  catch { return false; }
+};
+
+async function statusFor(v: VercelApi, domain: string, probe: HttpsProbe): Promise<DomainStatus> {
   let d = (await v.getProjectDomain(domain)) ?? (await v.addDomain(domain));
   if (!d.verified) {
     if ((await v.verifyDomain(domain)).verified) d = (await v.getProjectDomain(domain)) ?? d;
   }
   const cfg = await v.getConfig(domain);
-  return deriveStatus(domain, d, cfg);
+  const base = deriveStatus(domain, d, cfg);
+  return base.state === "live" ? applyHttps(base, await probe(domain)) : base;
 }
 
-async function persist(id: string, domain: string, live: boolean) {
-  await db().update(reports).set({ domainVerified: live, updatedAt: new Date() }).where(and(eq(reports.id, id), eq(reports.customDomain, domain)));
+async function persist(id: string, domain: string, verified: boolean) {
+  await db().update(reports).set({ domainVerified: verified, updatedAt: new Date() }).where(and(eq(reports.id, id), eq(reports.customDomain, domain)));
 }
 
-export async function connectDomain(userId: string, reportId: string, input: string, v: VercelApi = api()): Promise<DomainStatus> {
+export async function connectDomain(userId: string, reportId: string, input: string, v: VercelApi = api(), probe: HttpsProbe = probeHttps): Promise<DomainStatus> {
   const domain = normalizeDomain(input);
   const rep = await owned(userId, reportId);
-  if (rep.customDomain === domain) return (await checkDomain(userId, reportId, v)) as DomainStatus;
+  if (rep.customDomain === domain) return (await checkDomain(userId, reportId, v, probe)) as DomainStatus;
   if (rep.customDomain) throw new DomainError("This report already has a domain. Remove it first to connect a different one.");
 
   const [{ n }] = await db().select({ n: sql<number>`count(*)::int` }).from(reports).where(and(eq(reports.userId, userId), isNotNull(reports.customDomain)));
@@ -57,16 +67,16 @@ export async function connectDomain(userId: string, reportId: string, input: str
   } catch {
     throw new DomainError("That domain was just connected to another report. Try a different one.");
   }
-  const status = await statusFor(v, domain);
-  await persist(reportId, domain, status.state === "live");
+  const status = await statusFor(v, domain, probe);
+  await persist(reportId, domain, nextVerified(status.state, false));
   return status;
 }
 
-export async function checkDomain(userId: string, reportId: string, v: VercelApi = api()): Promise<DomainStatus | null> {
+export async function checkDomain(userId: string, reportId: string, v: VercelApi = api(), probe: HttpsProbe = probeHttps): Promise<DomainStatus | null> {
   const rep = await owned(userId, reportId);
   if (!rep.customDomain) return null;
-  const status = await statusFor(v, rep.customDomain);
-  await persist(reportId, rep.customDomain, status.state === "live");
+  const status = await statusFor(v, rep.customDomain, probe);
+  await persist(reportId, rep.customDomain, nextVerified(status.state, rep.domainVerified));
   return status;
 }
 

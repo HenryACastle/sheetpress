@@ -46,7 +46,8 @@ export function normalizeSlug(input: string): string {
 
 // ---- DNS instructions the UI shows ----
 export type DnsRecord = { type: "A" | "CNAME" | "TXT"; name: string; value: string; purpose: string };
-export type DomainState = "needs_txt" | "needs_dns" | "live";
+// "securing": DNS is right but the HTTPS certificate is not ready yet (Vercel issues it after DNS verifies).
+export type DomainState = "needs_txt" | "needs_dns" | "securing" | "live";
 export type DomainStatus = { domain: string; state: DomainState; records: DnsRecord[]; isApex: boolean; message: string };
 
 export type VercelDomain = { name: string; apexName: string; verified: boolean; verification?: { type: string; domain: string; value: string; reason: string }[] };
@@ -76,6 +77,21 @@ export function deriveStatus(domain: string, d: VercelDomain, cfg: VercelConfig 
   if (!d.verified) return { domain, state: "needs_txt", records, isApex, message: "Add the records below at your DNS provider, then press Check now." };
   if (!cfg || cfg.misconfigured) return { domain, state: "needs_dns", records, isApex, message: "Waiting for your DNS record. This usually takes a few minutes, but can take up to a few hours." };
   return { domain, state: "live", records: [], isApex, message: "Your domain is live." };
+}
+
+export const SECURING_MESSAGE = "Your DNS is correct. We are waiting for the secure (HTTPS) certificate, which usually takes a few minutes and can take up to an hour. Your address will not open securely until this finishes. You can leave this page: we keep checking, and it turns Live when it is ready.";
+
+/** Vercel saying "configured" is not enough: the secure address must actually answer. */
+export function applyHttps(s: DomainStatus, httpsOk: boolean): DomainStatus {
+  if (s.state !== "live" || httpsOk) return s;
+  return { ...s, state: "securing", message: SECURING_MESSAGE };
+}
+
+/** Value for reports.domain_verified. A failed probe never takes down a domain that was already serving. */
+export function nextVerified(state: DomainState, current: boolean): boolean {
+  if (state === "live") return true;
+  if (state === "securing") return current;
+  return false;
 }
 
 export const canAddDomain = (currentCount: number) => currentCount < FREE.maxCustomDomains;
