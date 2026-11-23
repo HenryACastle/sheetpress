@@ -34,9 +34,15 @@ export async function encrypt(plain: string, password: string): Promise<EncBlob>
 const safeJson = (o: unknown) =>
   JSON.stringify(o).replace(/</g, "\\u003c").replace(new RegExp(String.fromCharCode(0x2028), "g"), "\\u2028").replace(new RegExp(String.fromCharCode(0x2029), "g"), "\\u2029");
 
+// The report's logo doubles as the browser-tab icon. Only a clean https URL or an embedded image is used.
+export function faviconTag(logo?: string): string {
+  if (!logo || !(/^https:\/\/[^\s"'<>]+$/.test(logo) || /^data:image\/(png|jpeg|webp|svg\+xml);base64,[A-Za-z0-9+/]+=*$/.test(logo))) return "";
+  return `<link rel="icon" href="${logo}">`;
+}
+
 export function renderHtml(title: string, payload: Payload): string {
   const js = "enc" in payload ? `window.__ENC__=${safeJson(payload.enc)};` : `window.__DATA__=${safeJson(payload.data)};`;
-  return REPORT_TEMPLATE.replace("/*__PAYLOAD__*/", () => js).replace("__TITLE__", () => title.replace(/[<>&"]/g, "")).replace("__SITE_URL__", () => SITE_URL);
+  return REPORT_TEMPLATE.replace("/*__PAYLOAD__*/", () => js).replace("<title>__TITLE__</title>", () => `<title>${title.replace(/[<>&"]/g, "")}</title>` + ("data" in payload ? faviconTag(payload.data.brand?.logo) : "")).replace("__SITE_URL__", () => SITE_URL);
 }
 
 export function makeSlug(title: string): string {

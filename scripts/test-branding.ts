@@ -42,5 +42,13 @@ const view = async () => (await handleView(new Request("https://sheetpress.org/r
     payload = { data, access: newPasswordAccess("opensesame123") };
     b = await view(); assert.ok(b.includes("Built with"));
   });
+  await t("logo becomes the tab icon (view and lock page); unsafe values do not", async () => {
+    payload = { data, branding: { logo: "https://a.com/l.png" } };
+    let b = await view(); assert.ok(b.includes('<link rel="icon" href="https://a.com/l.png">')); assert.ok(b.indexOf("</title>") < b.indexOf('rel="icon"'));
+    payload = { data, access: newPasswordAccess("opensesame123"), branding: { logo: "data:image/png;base64,iVBORw0KGgo=" } };
+    b = await view(); assert.ok(b.includes('rel="icon" href="data:image/png'));
+    payload = { data: { ...data, brand: { logo: 'https://a.com/x"onerror="1' } } };
+    b = await view(); assert.ok(!b.includes('rel="icon"'));
+  });
   console.log(`branding: ${n} checks passed`);
 })();

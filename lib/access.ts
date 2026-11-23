@@ -1,6 +1,6 @@
 import { createHash, createHmac, randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import type { Access, Brand } from "./report";
-import { UserError } from "./report";
+import { UserError, faviconTag } from "./report";
 import { validLogo } from "./branding";
 
 // ACCESS CONTROL FOR REPORTS. Public or password now; per-email later (another Access mode behind gate()).
@@ -102,7 +102,7 @@ export function lockPage(opts: { title: string; slug: string; next: string; erro
   const lg = opts.brand?.logo;
   const logo = lg && (/^https:\/\//.test(lg) || validLogo(lg)) ? `<img src="${esc(lg ?? "")}" alt="" style="display:block;max-height:40px;max-width:200px;margin:0 0 16px" referrerpolicy="no-referrer">` : "";
   const bg = dark ? "#16242b" : "#f0f2f5", card = dark ? "#1d2f38" : "#fff", ink = dark ? "#e7edf0" : "#2a4451", line = dark ? "#2f4652" : "#d6dbe3", mute = dark ? "#9db0b9" : "#566b75";
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>${esc(opts.title)}</title>
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>${esc(opts.title)}</title>${faviconTag(lg)}
 <style>*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:${bg};color:${ink};font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
 .box{width:calc(100% - 32px);max-width:380px;background:${card};border:1px solid ${line};border-radius:12px;padding:24px}h1{margin:0 0 4px;font-size:20px}p{margin:0 0 12px;color:${mute}}
 input{width:100%;margin:4px 0 12px;padding:10px;border:1px solid ${line};border-radius:8px;background:${bg};color:${ink};font:inherit}
