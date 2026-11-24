@@ -1,5 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
-import { UserButton } from "@clerk/nextjs";
+import AccountMenu from "@/components/AccountMenu";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import ListEditor from "@/components/ListEditor";
@@ -22,7 +22,7 @@ export default async function EditList({ params }: { params: Promise<{ id: strin
   return (
     <>
       <header className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
-        <Logo /><UserButton />
+        <Logo /><AccountMenu />
       </header>
       <main className="mx-auto max-w-5xl px-4 pb-20">
         <Link href="/app" className="text-sm text-[var(--mute)] hover:text-[var(--ink)]">&larr; All reports</Link>

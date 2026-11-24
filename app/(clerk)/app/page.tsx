@@ -1,5 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
-import { UserButton } from "@clerk/nextjs";
+import AccountMenu from "@/components/AccountMenu";
 import { redirect } from "next/navigation";
 import Logo from "@/components/Logo";
 import NewListButton from "@/components/NewListButton";
@@ -24,7 +24,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
   return (
     <>
       <header className="mx-auto flex max-w-4xl items-center justify-between px-4 py-4">
-        <Logo /><UserButton />
+        <Logo /><AccountMenu />
       </header>
       <main className="mx-auto max-w-4xl space-y-8 px-4 pb-20">
         {firstRun && <WelcomeGuide greeting={welcome === "1"} />}
