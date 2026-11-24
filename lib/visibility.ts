@@ -1,3 +1,4 @@
+import { pageForVisitor } from "./blocks";
 import type { ReportData, Sheet } from "./report";
 
 // SHOW CODES decide what the public page may see. Enforced on the server, so hidden data is never sent.
@@ -35,7 +36,7 @@ export function publicSheet(sheet: Sheet): Sheet | null {
 
 /** What a visitor may see. Pure: the stored data is not changed. */
 export function publicView(d: ReportData): ReportData {
-  const sheets = d.sheets.map(publicSheet).filter((s): s is Sheet => s !== null);
+  const sheets = d.sheets.map(publicSheet).filter((s): s is Sheet => s !== null).map((s) => (s.kind === "page" ? pageForVisitor(s) : s));
   return { ...d, sheets, editable: undefined };
 }
 

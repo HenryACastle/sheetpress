@@ -6,6 +6,7 @@ export default function WorkbookTips() {
     <details className="mt-4 rounded-lg border border-[var(--line)] bg-[var(--bg)] px-4 py-3 text-sm">
       <summary className="cursor-pointer font-medium">How to set up your workbook</summary>
       <ul className="mt-3 list-disc space-y-1.5 pl-5 text-[var(--mute)]">
+        <li><b>Full guide:</b> <a href="/docs" target="_blank" className="text-[var(--accent)] underline">how to format and use SheetPress</a>, including the page builder (a <b>Page</b> sheet with Block, Content and Options columns) and its config codes.</li>
         <li>Each sheet becomes a tab. The first row of each sheet is the column headers.</li>
         <li><b>KPI tiles:</b> name a sheet <b>Summary</b>, <b>Overview</b>, <b>KPIs</b> or start it with <b>KPI </b>. Columns: label, value, optional note. Put one number per row.</li>
         <li><b>Line graph:</b> start a sheet name with <b>Chart </b> (for example <b>Chart Network daily</b>). The first column is the horizontal axis (dates work best), every number column becomes a line, and the table shows underneath. A much smaller series (clicks next to impressions) gets its own right-hand axis.</li>

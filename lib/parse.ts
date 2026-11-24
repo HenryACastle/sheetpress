@@ -1,5 +1,6 @@
 import readXlsxFile, { readSheetNames } from "read-excel-file/node";
 import { FREE } from "./plans";
+import { isPageSheet, pageTabName } from "./blocks";
 import { UserError, type Brand, type Sheet } from "./report";
 
 function cell(v: unknown): string | number {
@@ -87,13 +88,14 @@ export async function parseWorkbook(buf: Buffer): Promise<Parsed> {
     if (data.length > FREE.maxRowsPerSheet) {
       throw new UserError(`Sheet "${name}" has ${data.length} rows. Free reports are limited to ${FREE.maxRowsPerSheet} per sheet.`);
     }
-    const kind = sheetKind(name);
-    sheets.push({
-      name: displayName(name),
-      kind,
-      headers: headers.map((h, i) => String(h || `Column ${i + 1}`)),
-      rows: data,
-    });
+    const hdrs = headers.map((h, i) => String(h || `Column ${i + 1}`));
+    // A layout sheet (Page / Layout / Home / Site / Builder with a Block column) is a web page, not a table.
+    if (isPageSheet(name, hdrs)) {
+      const code = (name.match(CODE)?.[0] ?? "").trim();
+      sheets.push({ name: code ? `${pageTabName(stripCode(name))} ${code}` : pageTabName(name), kind: "page", headers: hdrs, rows: data });
+      continue;
+    }
+    sheets.push({ name: displayName(name), kind: sheetKind(name), headers: hdrs, rows: data });
   }
   if (!sheets.length) throw new UserError("The workbook has no data.");
   if (sheets.length > FREE.maxSheets) throw new UserError(`Free reports can have up to ${FREE.maxSheets} sheets.`);
