@@ -81,11 +81,12 @@ export default function LinkSettings({ id, slug, customDomain, domainVerified, e
   }
 
   const attached = status?.domain ?? customDomain;
+  const isLive = status ? status.state === "live" : domainVerified; // a live domain is the report's main address
   return (
     <div className="space-y-6 text-sm">
       <section aria-labelledby={`ln-${id}`}>
-        <h4 id={`ln-${id}`} className="font-semibold">Link name</h4>
-        <p className="mt-1 text-[var(--mute)]">Choose a short, memorable address for this report.</p>
+        <h4 id={`ln-${id}`} className="font-semibold">{isLive ? "SheetPress link (backup)" : "Link name"}</h4>
+        <p className="mt-1 text-[var(--mute)]">{isLive ? `Your main address is ${attached}. This link now forwards visitors there.` : "Choose a short, memorable address for this report."}</p>
         <div className="mt-2 flex flex-wrap items-center gap-2">
           <span className="text-[var(--mute)]">{host}/r/</span>
           <input aria-label="Link name" value={name} onChange={(e) => setName(e.target.value)} maxLength={60} className={`${field} max-w-[16rem]`} />
@@ -95,7 +96,7 @@ export default function LinkSettings({ id, slug, customDomain, domainVerified, e
       </section>
 
       <section aria-labelledby={`cd-${id}`}>
-        <h4 id={`cd-${id}`} className="font-semibold">Your own domain</h4>
+        <h4 id={`cd-${id}`} className="font-semibold">{isLive ? "Main domain" : "Your own domain"}</h4>
         {!enabled ? (
           <p className="mt-1 text-[var(--mute)]">Custom domains are coming soon.</p>
         ) : !attached ? (
@@ -112,11 +113,14 @@ export default function LinkSettings({ id, slug, customDomain, domainVerified, e
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-mono">{attached}</span>
               {status?.state === "live"
-                ? <span className="rounded-full bg-[var(--okbg)] px-2 py-0.5 text-xs font-semibold text-[var(--ok)]">Live</span>
+                ? <span className="rounded-full bg-[var(--okbg)] px-2 py-0.5 text-xs font-semibold text-[var(--ok)]">Live · main address</span>
                 : <span className="rounded-full bg-[var(--warnbg)] px-2 py-0.5 text-xs font-semibold text-[var(--warn)]">{status?.state === "needs_txt" ? "Needs verification" : status?.state === "securing" ? "Securing (HTTPS)" : "Waiting for DNS"}</span>}
             </div>
             {status?.state === "live" ? (
-              <p><a href={`https://${attached}`} target="_blank" rel="noopener noreferrer" className="text-[var(--accent)] underline">Open https://{attached}</a></p>
+              <>
+                <p><a href={`https://${attached}`} target="_blank" rel="noopener noreferrer" className="text-[var(--accent)] underline">Open https://{attached}</a></p>
+                <p className="text-xs text-[var(--mute)]">This is the report&apos;s main address. Open and Copy link use it, and the SheetPress link forwards here. Remove the domain to go back to the SheetPress link.</p>
+              </>
             ) : (
               <>
                 <p className="text-[var(--mute)]">{status?.message ?? "Checking your domain..."}</p>

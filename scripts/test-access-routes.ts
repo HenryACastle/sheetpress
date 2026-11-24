@@ -84,5 +84,15 @@ const cookieFrom = (r: Response) => (r.headers.get("set-cookie") ?? "").split(";
     assert.equal((await post("rep", { password: "rightpassword12" }, { "x-forwarded-for": "7.7.7.7" })).status, 429);
     assert.equal((await post("rep", { password: "rightpassword12" }, { "x-forwarded-for": "8.8.8.8" })).status, 303); // another visitor is not blocked
   });
+  await t("a live custom domain is the main address: the SheetPress link forwards there (and only then)", async () => {
+    payload = { data };
+    const withDomain = (customDomain: string | null, domainVerified: boolean) => async (): Promise<Row | null> => ({ id: ID, title: "Secret report", payload, customDomain, domainVerified });
+    let r = await handleView(req("/r/rep"), "rep", withDomain("reports.example.com", true));
+    assert.equal(r.status, 307); assert.equal(r.headers.get("location"), "https://reports.example.com/"); assert.match(r.headers.get("cache-control") ?? "", /no-store/);
+    assert.equal((await handleView(req("/r/rep"), "rep", withDomain("reports.example.com", false))).status, 200); // not verified yet: no redirect
+    assert.equal((await handleView(req("/r/rep"), "rep", withDomain(null, false))).status, 200); // no domain
+    const onDomain = new Request("https://reports.example.com/r/rep", { headers: { "x-forwarded-host": "reports.example.com" } });
+    assert.equal((await handleView(onDomain, "rep", withDomain("reports.example.com", true))).status, 200); // the domain itself serves the report, no loop
+  });
   console.log(`\naccess routes: ${n} checks passed`);
 })().catch((e) => { console.error("FAILED:", e.message); process.exit(1); });

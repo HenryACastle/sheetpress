@@ -24,7 +24,7 @@ export async function countReports(userId: string) {
 export const ownedWhere = (id: string, userId: string) => and(eq(reports.id, id), eq(reports.userId, userId));
 
 export async function getPublicBySlug(slug: string) {
-  const [r] = await db().select({ id: reports.id, title: reports.title, payload: reports.payload }).from(reports).where(eq(reports.slug, slug)).limit(1);
+  const [r] = await db().select({ id: reports.id, title: reports.title, payload: reports.payload, customDomain: reports.customDomain, domainVerified: reports.domainVerified }).from(reports).where(eq(reports.slug, slug)).limit(1);
   return r ?? null;
 }
 

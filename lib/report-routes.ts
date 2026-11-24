@@ -7,7 +7,8 @@ import { effectiveBrand, withBrand } from "./branding";
 
 // The public report endpoints, with the data lookup injected so the security-critical logic can be tested
 // without a database. app/r/[slug]/route.ts and .../unlock/route.ts are thin wrappers around these.
-export type Row = { id: string; title: string; payload: unknown };
+// customDomain + domainVerified: once a verified domain exists it is the report's main address.
+export type Row = { id: string; title: string; payload: unknown; customDomain?: string | null; domainVerified?: boolean | null };
 export type Lookup = (slug: string) => Promise<Row | null>;
 
 const MISSING = `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Report not found</title><body style="font-family:system-ui,sans-serif;background:#f0f2f5;color:#2a4451;display:grid;place-items:center;min-height:100vh;margin:0;text-align:center"><div style="max-width:380px;padding:24px"><h1 style="margin:0 0 8px">Report not found</h1><p style="color:#566b75">This link may have been deleted or copied incorrectly.</p><a href="/" style="color:#2a7f63">Back to SheetPress</a></div>`;
@@ -22,6 +23,12 @@ export async function handleView(req: Request, slug: string, lookup: Lookup): Pr
   const r = await lookup(slug);
   if (!r) return missing();
   const payload = r.payload as Payload;
+
+  // A report with a live custom domain has ONE main address: the SheetPress link forwards visitors to it.
+  // Temporary redirect, so removing the domain brings the SheetPress link straight back.
+  if (r.customDomain && r.domainVerified && isOwnHost(hostOf(req))) {
+    return new Response(null, { status: 307, headers: { location: `https://${r.customDomain}/`, "cache-control": "no-store", "x-robots-tag": "noindex, nofollow" } });
+  }
 
   // Old browser-encrypted reports still unlock in the page itself.
   if ("enc" in payload) return html(renderHtml(r.title, payload), { "cache-control": "public, max-age=0, s-maxage=30, stale-while-revalidate=300" });
