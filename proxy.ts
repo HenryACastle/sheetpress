@@ -1,12 +1,18 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse, type NextFetchEvent, type NextRequest } from "next/server";
 import { isOwnHost } from "@/lib/domains";
+import { SITE_HOST, SITE_URL } from "@/lib/site";
 import { slugForHost } from "@/lib/domain-service";
 
 // Clerk runs ONLY where it is needed. The marketing page (/) and published reports (/r/*) never
 // trigger Clerk's session handshake or load Clerk scripts.
 const isPage = createRouteMatcher(["/app(.*)"]);
 const isApi = createRouteMatcher(["/api/reports(.*)"]);
+// Clerk's production instance belongs to ONE domain (SITE_HOST). On the old address its frontend API rejects
+// the browser (GET /v1/client returns 400), so the sign-in form never loads. Send only the pages that need
+// Clerk to the real domain; public pages and every shared report link keep working on the old address.
+const LEGACY_HOSTS = new Set(["sheetpress.yeve.dev"]);
+const isAuthPage = createRouteMatcher(["/app(.*)", "/sign-in(.*)", "/sign-up(.*)"]);
 const needsClerk = createRouteMatcher(["/app(.*)", "/sign-in(.*)", "/sign-up(.*)", "/api/reports(.*)"]);
 
 const clerk = clerkMiddleware(
@@ -72,6 +78,9 @@ export default async function proxy(req: NextRequest, evt: NextFetchEvent) {
       console.error("custom domain lookup failed", e);
       return new NextResponse("Temporarily unavailable. Please try again.", { status: 503, headers: { "retry-after": "10" } });
     }
+  }
+  if (LEGACY_HOSTS.has(host) && host !== SITE_HOST.toLowerCase() && isAuthPage(req)) {
+    return NextResponse.redirect(new URL(req.nextUrl.pathname + req.nextUrl.search, SITE_URL), 307);
   }
   if (needsClerk(req)) return clerk(req, evt);
   return NextResponse.next();
