@@ -7,7 +7,8 @@ import JsonLd from "@/components/blog/JsonLd";
 import PostCard from "@/components/blog/PostCard";
 import { getAllPosts } from "@/lib/blog";
 import { FREE } from "@/lib/plans";
-import { CUSTOM_DOMAINS_LIVE, SITE_HOST, SITE_URL } from "@/lib/site";
+import CookieSettingsButton from "@/components/analytics/CookieSettingsButton";
+import { CUSTOM_DOMAINS_LIVE, GOOGLE_TAG_ID, SITE_HOST, SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = { alternates: { canonical: "/" } };
 
@@ -210,6 +211,7 @@ export default function Home() {
             <Link href="/sign-in" className="hover:text-[var(--ink)]">Sign in</Link>
             <Link href="/privacy" className="hover:text-[var(--ink)]">Privacy</Link>
             <Link href="/terms" className="hover:text-[var(--ink)]">Terms</Link>
+            {GOOGLE_TAG_ID && <CookieSettingsButton className="hover:text-[var(--ink)]" />}
           </nav>
           <p>&copy; {new Date().getFullYear()} SheetPress</p>
         </div>

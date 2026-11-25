@@ -12,3 +12,11 @@ export const CUSTOM_DOMAINS_LIVE = process.env.NEXT_PUBLIC_CUSTOM_DOMAINS === "1
 // marketing pages only. Off until NEXT_PUBLIC_ANALYTICS=1 is set in Vercel AND Analytics is enabled on the
 // Vercel project. The privacy policy text follows this flag, so what it says always matches what runs.
 export const ANALYTICS_ON = process.env.NEXT_PUBLIC_ANALYTICS === "1";
+
+// Google tag. NEXT_PUBLIC_GOOGLE_TAG_ID accepts a Tag Manager container (GTM-XXXXXXX) or a GA4 Measurement ID
+// (G-XXXXXXXXXX); set it to "off" to disable. It runs only on the public marketing pages, only AFTER a visitor
+// accepts (nothing loads from Google and no cookie is set before that), and never on reports, sign-in or the app.
+// The privacy policy follows this value. Invalid values are ignored (feature off).
+const rawTag = (process.env.NEXT_PUBLIC_GOOGLE_TAG_ID ?? "GTM-KWGFMNGX").trim();
+export const GOOGLE_TAG_ID = /^(G-[A-Z0-9]{6,14}|GTM-[A-Z0-9]{4,10})$/.test(rawTag) ? rawTag : "";
+export const GOOGLE_TAG_IS_GTM = GOOGLE_TAG_ID.startsWith("GTM-");
