@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import LegalPage from "@/components/LegalPage";
+import { ANALYTICS_ON } from "@/lib/site";
 
 export const metadata: Metadata = { title: "Privacy Policy | SheetPress", alternates: { canonical: "/privacy" } };
 
 export default function Privacy() {
   return (
-    <LegalPage title="Privacy Policy" updated="November 20, 2026">
+    <LegalPage title="Privacy Policy" updated="November 25, 2026">
       <p>SheetPress turns the Excel workbooks you upload into web pages. This page explains what we collect, where it lives and what you can control.</p>
 
       <h2>What we collect</h2>
@@ -13,13 +14,19 @@ export default function Privacy() {
         <li><b>Account details</b> (such as your email address and name) when you sign up. Sign-in is handled by our authentication provider, Clerk.</li>
         <li><b>Your workbooks.</b> The cell values from the .xlsx files you upload, plus the title and subtitle you give each report.</li>
         <li><b>Basic server logs</b> (such as IP address and browser type) created by our hosting provider when pages are requested.</li>
+        {ANALYTICS_ON && <li><b>Anonymous visit counts</b> for our public pages (home, blog, guide, legal pages): the page address, where the visit came from, and a rough location, device and browser type. See below.</li>}
       </ul>
 
       <h2>What we do not do</h2>
       <ul>
         <li>We do not sell your data and we do not run advertising.</li>
-        <li>We do not currently use analytics or advertising trackers on this site.</li>
-        <li>We do not set cookies on the home page or on published reports. Cookies are used only to keep you signed in when you use your account.</li>
+        <li>We do not use advertising trackers, and we do not follow you across other websites.</li>
+        {ANALYTICS_ON ? (
+          <li>We use Vercel Web Analytics to count visits to our public pages so we can see which guides help people. It does not use third-party cookies and does not follow you across other websites. A visit is recognized only by a hash made from the request, which is discarded after 24 hours. It is not used on published reports or inside your account, so we do not count who opens a report.</li>
+        ) : (
+          <li>We do not currently use analytics on this site.</li>
+        )}
+        <li>We do not set cookies on the home page or on published reports{ANALYTICS_ON ? ", and our analytics does not use cookies to identify visitors" : ""}. Cookies are used only to keep you signed in when you use your account.</li>
       </ul>
 
       <h2>Public and password-protected reports</h2>
