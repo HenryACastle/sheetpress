@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import Link from "next/link";
 import SiteHeader from "@/components/landing/SiteHeader";
+import MiniFooter from "@/components/landing/MiniFooter";
 import Markdown, { headings, slugify } from "@/components/Markdown";
 
 export const metadata: Metadata = {
@@ -30,6 +31,7 @@ export default function Docs() {
           <p className="mt-12 text-sm text-[var(--mute)]">Ready to try it? <Link href="/sign-up">Start free</Link>.</p>
         </article>
       </main>
+      <MiniFooter />
     </>
   );
 }

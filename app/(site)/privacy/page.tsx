@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import LegalPage from "@/components/LegalPage";
 import CookieSettingsButton from "@/components/analytics/CookieSettingsButton";
-import { ANALYTICS_ON, GOOGLE_TAG_ID, GOOGLE_TAG_IS_GTM } from "@/lib/site";
+import { ANALYTICS_ON, CONSENT_MODE, GOOGLE_TAG_ID, GOOGLE_TAG_IS_GTM } from "@/lib/site";
 
 export const metadata: Metadata = { title: "Privacy Policy | SheetPress", alternates: { canonical: "/privacy" } };
 
@@ -15,7 +15,7 @@ export default function Privacy() {
         <li><b>Account details</b> (such as your email address and name) when you sign up. Sign-in is handled by our authentication provider, Clerk.</li>
         <li><b>Your workbooks.</b> The cell values from the .xlsx files you upload, plus the title and subtitle you give each report.</li>
         <li><b>Basic server logs</b> (such as IP address and browser type) created by our hosting provider when pages are requested.</li>
-        {GOOGLE_TAG_ID && <li><b>Visit statistics from Google Analytics</b>, only if you accept analytics cookies: the pages you view, how you arrived, clicks on our sign-up button and sample downloads, and a rough location, device and browser type. See Cookies and Google Analytics below.</li>}
+        {GOOGLE_TAG_ID && <li><b>Visit statistics from Google Analytics</b>{CONSENT_MODE === "optin" ? ", only if you accept analytics cookies" : CONSENT_MODE === "regional" ? ", on by default outside the EU, UK and Switzerland, and only if you accept inside them" : ", unless you turn them off"}: the pages you view, how you arrived, clicks on our sign-up button and sample downloads, and a rough location, device and browser type. See Cookies and Google Analytics below.</li>}
         {ANALYTICS_ON && <li><b>Anonymous visit counts</b> for our public pages (home, blog, guide, legal pages): the page address, where the visit came from, and a rough location, device and browser type. See below.</li>}
       </ul>
 
@@ -38,8 +38,8 @@ export default function Privacy() {
       {GOOGLE_TAG_ID && (
         <>
           <h2>Cookies and Google Analytics</h2>
-          <p>On our public pages (home, blog, guide and legal pages) we would like to use Google Analytics{GOOGLE_TAG_IS_GTM ? " (loaded through Google Tag Manager)" : ""} to see which guides help people. It stays off until you choose Accept. If you accept, Google sets two cookies in your browser: <code>_ga</code> (up to 2 years, tells visitors apart) and a second one starting <code>_ga_</code> (up to 2 years, keeps a visit together). Google receives the technical details your browser sends with any request, such as your IP address, together with the pages you view and your clicks on our sign-up button and sample downloads. We keep this data for at most 14 months and have turned off Google&rsquo;s advertising features.</p>
-          <p>If you decline, or your browser sends a Do Not Track or Global Privacy Control signal, nothing is loaded from Google and no analytics cookies are set. Analytics is never used on published reports or inside your account, so we do not count who opens a report. You can change your choice at any time: <CookieSettingsButton />. Google&rsquo;s own privacy policy is at <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">policies.google.com/privacy</a>.</p>
+          <p>{`On our public pages (home, blog, guide and legal pages) we use Google Analytics${GOOGLE_TAG_IS_GTM ? " (loaded through Google Tag Manager)" : ""} to see which guides help people. `}{CONSENT_MODE === "optin" ? "It stays off until you choose Accept." : CONSENT_MODE === "regional" ? "It is on by default, except for visitors in the European Union, the European Economic Area, the United Kingdom and Switzerland (and where we cannot tell where you are), where it stays off until you choose Accept. You can turn it off at any time." : "It is on by default and you can turn it off at any time."} While it is on, Google sets two cookies in your browser: <code>_ga</code> (up to 2 years, tells visitors apart) and a second one starting <code>_ga_</code> (up to 2 years, keeps a visit together). Google receives the technical details your browser sends with any request, such as your IP address, together with the pages you view and your clicks on our sign-up button and sample downloads. We keep this data for at most 14 months and have turned off Google&rsquo;s advertising features.</p>
+          <p>If you decline or turn it off, or your browser sends a Do Not Track or Global Privacy Control signal, nothing is loaded from Google and no analytics cookies are set. Analytics is never used on published reports or inside your account, so we do not count who opens a report. You can change your choice at any time: <CookieSettingsButton />. Google&rsquo;s own privacy policy is at <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">policies.google.com/privacy</a>.</p>
         </>
       )}
 
@@ -52,7 +52,7 @@ export default function Privacy() {
         <li><b>Clerk</b> for sign-in and account management.</li>
         <li><b>Neon</b> for the database that stores your reports.</li>
         <li><b>Vercel</b> for hosting the website.</li>
-        {GOOGLE_TAG_ID && <li><b>Google</b> for Google Analytics{GOOGLE_TAG_IS_GTM ? " and Google Tag Manager" : ""}, only if you accept analytics cookies.</li>}
+        {GOOGLE_TAG_ID && <li><b>Google</b> for Google Analytics{GOOGLE_TAG_IS_GTM ? " and Google Tag Manager" : ""}, {CONSENT_MODE === "optin" ? ", only if you accept analytics cookies" : CONSENT_MODE === "regional" ? ", unless you turn it off or are in a region where it needs your opt-in first" : ", unless you turn it off"}.</li>}
       </ul>
       <p>These providers handle data only to run the service for us.</p>
 

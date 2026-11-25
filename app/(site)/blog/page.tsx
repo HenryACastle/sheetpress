@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import SiteHeader from "@/components/landing/SiteHeader";
+import MiniFooter from "@/components/landing/MiniFooter";
 import JsonLd from "@/components/blog/JsonLd";
 import PostCard from "@/components/blog/PostCard";
 import { getAllPosts } from "@/lib/blog";
@@ -29,6 +30,7 @@ export default function BlogIndex() {
         </div>
         {posts.length === 0 && <p className="mt-10 text-[var(--mute)]">First posts are on the way.</p>}
       </main>
+      <MiniFooter />
       <JsonLd data={{
         "@context": "https://schema.org", "@type": "Blog", name: "SheetPress Blog", url: `${SITE_URL}/blog`,
         publisher: { "@type": "Organization", name: "SheetPress", url: SITE_URL },

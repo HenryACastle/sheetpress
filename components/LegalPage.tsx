@@ -1,4 +1,5 @@
 import SiteHeader from "./landing/SiteHeader";
+import MiniFooter from "./landing/MiniFooter";
 import { SUPPORT_EMAIL } from "@/lib/site";
 
 export default function LegalPage({ title, updated, children }: { title: string; updated: string; children: React.ReactNode }) {
@@ -13,6 +14,7 @@ export default function LegalPage({ title, updated, children }: { title: string;
           {SUPPORT_EMAIL && (<><h2>Contact</h2><p>Questions or requests: <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a></p></>)}
         </div>
       </main>
+      <MiniFooter />
     </>
   );
 }

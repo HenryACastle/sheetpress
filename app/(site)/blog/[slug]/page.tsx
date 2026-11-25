@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import SiteHeader from "@/components/landing/SiteHeader";
+import MiniFooter from "@/components/landing/MiniFooter";
 import JsonLd from "@/components/blog/JsonLd";
 import PostCard from "@/components/blog/PostCard";
 import Markdown, { headings, slugify } from "@/components/Markdown";
@@ -82,6 +83,7 @@ export default async function PostPage({ params }: Props) {
           </section>
         )}
       </main>
+      <MiniFooter />
       <JsonLd data={[
         {
           "@context": "https://schema.org", "@type": "BlogPosting", headline: post.title, description: post.description,

@@ -20,3 +20,13 @@ export const ANALYTICS_ON = process.env.NEXT_PUBLIC_ANALYTICS === "1";
 const rawTag = (process.env.NEXT_PUBLIC_GOOGLE_TAG_ID ?? "GTM-KWGFMNGX").trim();
 export const GOOGLE_TAG_ID = /^(G-[A-Z0-9]{6,14}|GTM-[A-Z0-9]{4,10})$/.test(rawTag) ? rawTag : "";
 export const GOOGLE_TAG_IS_GTM = GOOGLE_TAG_ID.startsWith("GTM-");
+
+// How analytics consent works (only matters when a Google tag is set):
+//   "regional" (default): ON by default for visitors outside the EU/EEA, UK and Switzerland, where visitors can
+//                         turn it off any time; opt-in banner INSIDE those regions, where law requires prior consent.
+//                         If the visitor's country cannot be determined it fails safe to the opt-in banner.
+//   "none":               ON by default for everyone, no banner anywhere (opt-out only). Higher legal risk for EU/UK/CH visitors.
+//   "optin":              OFF until each visitor accepts, everywhere.
+// A browser Global Privacy Control / Do Not Track signal always keeps it off in every mode.
+const rawMode = (process.env.NEXT_PUBLIC_CONSENT_MODE ?? "regional").trim().toLowerCase();
+export const CONSENT_MODE: "regional" | "none" | "optin" = rawMode === "none" || rawMode === "optin" ? rawMode : "regional";
