@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import LegalPage from "@/components/LegalPage";
 
-export const metadata: Metadata = { title: "Terms of Service | SheetPress" };
+export const metadata: Metadata = { title: "Terms of Service | SheetPress", alternates: { canonical: "/terms" } };
 
 export default function Terms() {
   return (

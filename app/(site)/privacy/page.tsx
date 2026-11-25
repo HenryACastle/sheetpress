@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import LegalPage from "@/components/LegalPage";
 
-export const metadata: Metadata = { title: "Privacy Policy | SheetPress" };
+export const metadata: Metadata = { title: "Privacy Policy | SheetPress", alternates: { canonical: "/privacy" } };
 
 export default function Privacy() {
   return (

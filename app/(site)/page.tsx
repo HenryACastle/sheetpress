@@ -1,9 +1,15 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Logo from "@/components/Logo";
 import SiteHeader, { NAV_LINKS } from "@/components/landing/SiteHeader";
 import ReportPreview from "@/components/landing/ReportPreview";
+import JsonLd from "@/components/blog/JsonLd";
+import PostCard from "@/components/blog/PostCard";
+import { getAllPosts } from "@/lib/blog";
 import { FREE } from "@/lib/plans";
-import { CUSTOM_DOMAINS_LIVE, SITE_HOST } from "@/lib/site";
+import { CUSTOM_DOMAINS_LIVE, SITE_HOST, SITE_URL } from "@/lib/site";
+
+export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 // Public page: deliberately independent of Clerk (no provider, no middleware), so it loads
 // for everyone, including returning visitors with session cookies and during Clerk outages.
@@ -173,6 +179,19 @@ export default function Home() {
           </div>
         </section>
 
+        {/* From the blog: internal links from the home page help new posts get found and ranked */}
+        {getAllPosts().length > 0 && (
+          <section id="blog" className="mx-auto max-w-5xl scroll-mt-6 px-4 py-14">
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <h2 className="text-3xl font-bold tracking-tight">From the blog</h2>
+              <Link href="/blog" className="text-sm font-semibold text-[var(--accent)] underline underline-offset-4">All posts</Link>
+            </div>
+            <div className="mt-6 grid gap-4 md:grid-cols-3">
+              {getAllPosts().slice(0, 3).map((p) => <PostCard key={p.slug} post={p} />)}
+            </div>
+          </section>
+        )}
+
         {/* Closing CTA */}
         <section className="mx-auto max-w-5xl px-4 pb-20 pt-6">
           <div className="rounded-2xl bg-[var(--ink)] px-6 py-12 text-center text-white">
@@ -195,6 +214,16 @@ export default function Home() {
           <p>&copy; {new Date().getFullYear()} SheetPress</p>
         </div>
       </footer>
+      <JsonLd data={[
+        { "@context": "https://schema.org", "@type": "Organization", name: "SheetPress", url: SITE_URL, logo: `${SITE_URL}/logo.png` },
+        { "@context": "https://schema.org", "@type": "WebSite", name: "SheetPress", url: SITE_URL },
+        {
+          "@context": "https://schema.org", "@type": "SoftwareApplication", name: "SheetPress", url: SITE_URL,
+          applicationCategory: "BusinessApplication", operatingSystem: "Web",
+          description: "Upload an Excel file and publish it as a searchable website, a status report or a password-protected client page.",
+          offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+        },
+      ]} />
     </div>
   );
 }

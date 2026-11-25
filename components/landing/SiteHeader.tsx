@@ -5,7 +5,7 @@ import MobileMenu from "./MobileMenu";
 // Sticky site header shared by the landing page and the legal pages. Hash links are absolute
 // ("/#examples") so they also work from /privacy and /terms. No Clerk code in here (public page rule).
 export const NAV_LINKS: [string, string][] = [
-  ["Examples", "/#examples"], ["Use cases", "/#use-cases"], ["How it works", "/#how"], ["Pricing", "/#pricing"], ["FAQ", "/#faq"], ["Guide", "/docs"],
+  ["Examples", "/#examples"], ["Use cases", "/#use-cases"], ["How it works", "/#how"], ["Pricing", "/#pricing"], ["FAQ", "/#faq"], ["Guide", "/docs"], ["Blog", "/blog"],
 ];
 
 export default function SiteHeader() {

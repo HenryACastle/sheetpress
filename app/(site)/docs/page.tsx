@@ -6,6 +6,7 @@ import SiteHeader from "@/components/landing/SiteHeader";
 import Markdown, { headings, slugify } from "@/components/Markdown";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/docs" },
   title: "Guide: how to format your workbook | SheetPress",
   description: "How to set up an Excel workbook for SheetPress: sheets, tables, charts, the page builder with config codes, branding and privacy.",
 };

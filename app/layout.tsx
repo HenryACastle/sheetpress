@@ -9,6 +9,11 @@ export const metadata: Metadata = {
   title, description, applicationName: "SheetPress",
   openGraph: { title, description, siteName: "SheetPress", type: "website" },
   twitter: { card: "summary", title, description },
+  // Set in Vercel to verify the site in Google Search Console / Bing Webmaster Tools (meta-tag method).
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || undefined,
+    other: process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION ? { "msvalidate.01": process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION } : undefined,
+  },
 };
 export const viewport: Viewport = { themeColor: "#2a4451" };
 
